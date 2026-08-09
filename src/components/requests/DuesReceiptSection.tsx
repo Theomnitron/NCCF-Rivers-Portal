@@ -39,7 +39,7 @@ export const DuesReceiptSection: React.FC = () => {
 
   const [subType, setSubType] = useState<PaymentType>('combined');
   const [targetMonth, setTargetMonth] = useState<string>('2026-08'); // YYYY-MM format
-  
+
   // Calculate month values from targetMonth YYYY-MM
   const [yearStr, monthNumStr] = targetMonth.split('-');
   const year = parseInt(yearStr, 10) || 2026;
@@ -66,6 +66,13 @@ export const DuesReceiptSection: React.FC = () => {
   const feedTarget = isGee ? 0 : (activeUser?.targets?.feeding ?? 10000);
   const fullTarget = maintTarget + feedTarget;
   const defaultAmount = subType === 'maintenance' && !isGee ? maintTarget : fullTarget;
+
+  // Account details for display
+  const accountDetails = {
+    accountName: 'Richard Emmanuel Okon',
+    accountNumber: '806 039 7045',
+    bankName: 'OPAY',
+  };
 
   const [rawAmountText, setRawAmountText] = useState<string>(defaultAmount.toString());
   const [processedFile, setProcessedFile] = useState<ProcessedFileResult | null>(null);
@@ -165,7 +172,7 @@ export const DuesReceiptSection: React.FC = () => {
 
   return (
     <div className="bg-white/50 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_0_rgba(31,38,135,0.08),inset_0_1px_0_0_rgba(255,255,255,0.9)] dark:bg-zinc-950/60 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-[0_12px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.15)] rounded-2xl p-5 sm:p-6 transition-all duration-200">
-      
+
       {/* Header Bar */}
       <div className="border-b border-slate-900/10 dark:border-white/10 pb-3 mb-4 flex flex-col xs:flex-row xs:items-center justify-between gap-2 items-start">
         <div>
@@ -174,7 +181,7 @@ export const DuesReceiptSection: React.FC = () => {
             <span>Submit Dues Clearance Receipt</span>
           </h3>
           <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
-            Submit bank transfer receipts for monthly house upkeep & kitchen assessments
+            Submit your payment receipt(s) of bank transfers made to <strong>{accountDetails.accountNumber}</strong>•<strong>{accountDetails.accountName}</strong>•<strong>{accountDetails.bankName}</strong>  for monthly house upkeep & kitchen assessments
           </p>
         </div>
         <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold tracking-wider rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800">
@@ -225,11 +232,10 @@ export const DuesReceiptSection: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleSubTypeChange('combined')}
-                className={`p-3.5 rounded-xl border text-left transition-all min-h-[48px] cursor-pointer flex items-center justify-between ${
-                  subType === 'combined'
+                className={`p-3.5 rounded-xl border text-left transition-all min-h-[48px] cursor-pointer flex items-center justify-between ${subType === 'combined'
                     ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md font-bold'
                     : 'bg-slate-900/5 dark:bg-black/40 border-slate-900/10 dark:border-white/10 text-zinc-800 dark:text-zinc-200 hover:bg-slate-900/10'
-                }`}
+                  }`}
               >
                 <div>
                   <div className="font-bold text-xs sm:text-sm">
@@ -248,11 +254,10 @@ export const DuesReceiptSection: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleSubTypeChange('maintenance')}
-                  className={`p-3.5 rounded-xl border text-left transition-all min-h-[48px] cursor-pointer flex items-center justify-between ${
-                    subType === 'maintenance'
+                  className={`p-3.5 rounded-xl border text-left transition-all min-h-[48px] cursor-pointer flex items-center justify-between ${subType === 'maintenance'
                       ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md font-bold'
                       : 'bg-slate-900/5 dark:bg-black/40 border-slate-900/10 dark:border-white/10 text-zinc-800 dark:text-zinc-200 hover:bg-slate-900/10'
-                  }`}
+                    }`}
                 >
                   <div>
                     <div className="font-bold text-xs sm:text-sm">Maintenance ONLY</div>
@@ -268,157 +273,156 @@ export const DuesReceiptSection: React.FC = () => {
             </div>
           </div>
 
-        {/* 2. Target Month Input (YYYY-MM) & Amount Paid Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-zinc-800 dark:text-zinc-200 font-bold mb-1.5">
-              Target Month (YYYY-MM Format)
-            </label>
-            <input
-              type="month"
-              value={targetMonth}
-              min="2026-01"
-              max="2028-12"
-              onChange={(e) => setTargetMonth(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-900/5 dark:bg-black/50 border border-slate-900/10 dark:border-white/10 text-zinc-900 dark:text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px] cursor-pointer"
-              required
-            />
-            <span className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 block">
-              Selected Cycle: <span className="font-bold text-zinc-900 dark:text-white">{monthName} {year}</span> ({monthKey})
-            </span>
-          </div>
-
-          <div>
-            <label className="block text-zinc-800 dark:text-zinc-200 font-bold mb-1.5">
-              Amount Paid
-            </label>
-            <div className="relative">
+          {/* 2. Target Month Input (YYYY-MM) & Amount Paid Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-zinc-800 dark:text-zinc-200 font-bold mb-1.5">
+                Target Month (YYYY-MM Format)
+              </label>
               <input
-                type="text"
-                value={formattedDisplayAmount}
-                onChange={handleAmountChange}
-                placeholder="₦0"
-                className="w-full px-3 py-2.5 rounded-xl bg-slate-900/5 dark:bg-black/50 border border-slate-900/10 dark:border-white/10 text-zinc-900 dark:text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px]"
+                type="month"
+                value={targetMonth}
+                min="2026-01"
+                max="2028-12"
+                onChange={(e) => setTargetMonth(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl bg-slate-900/5 dark:bg-black/50 border border-slate-900/10 dark:border-white/10 text-zinc-900 dark:text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px] cursor-pointer"
                 required
               />
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 block">
+                Selected Cycle: <span className="font-bold text-zinc-900 dark:text-white">{monthName} {year}</span> ({monthKey})
+              </span>
             </div>
-            <span className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 block">
-              Assessed target: ₦{defaultAmount.toLocaleString()}
-            </span>
+
+            <div>
+              <label className="block text-zinc-800 dark:text-zinc-200 font-bold mb-1.5">
+                Amount Paid
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formattedDisplayAmount}
+                  onChange={handleAmountChange}
+                  placeholder="₦0"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-900/5 dark:bg-black/50 border border-slate-900/10 dark:border-white/10 text-zinc-900 dark:text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px]"
+                  required
+                />
+              </div>
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 block">
+                Assessed target: ₦{defaultAmount.toLocaleString()}
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* 3. Drag-and-Drop Client-Side File Processing Engine (Image ONLY) */}
-        <div>
-          <label className="block text-zinc-800 dark:text-zinc-200 font-bold mb-1.5">
-            Attach Bank Transfer Proof (Image ONLY - PNG, JPG, WEBP)
-          </label>
+          {/* 3. Drag-and-Drop Client-Side File Processing Engine (Image ONLY) */}
+          <div>
+            <label className="block text-zinc-800 dark:text-zinc-200 font-bold mb-1.5">
+              Attach Bank Transfer Proof (Image ONLY - PNG, JPG, WEBP)
+            </label>
 
-          {!processedFile ? (
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsDragging(false);
-                handleFileDrop(e.dataTransfer.files);
-              }}
-              className={`border-2 border-dashed rounded-xl p-6 text-center transition-all flex flex-col items-center justify-center cursor-pointer min-h-[140px] ${
-                isDragging
-                  ? 'border-emerald-500 bg-emerald-500/10'
-                  : 'border-slate-300 dark:border-zinc-700 bg-slate-900/5 dark:bg-black/30 hover:border-zinc-500'
-              }`}
-              onClick={() => {
-                const el = document.getElementById('dues-file-input');
-                if (el) el.click();
-              }}
-            >
-              <input
-                type="file"
-                id="dues-file-input"
-                accept="image/png, image/jpeg, image/webp"
-                className="hidden"
-                onChange={(e) => handleFileDrop(e.target.files)}
-              />
+            {!processedFile ? (
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  handleFileDrop(e.dataTransfer.files);
+                }}
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-all flex flex-col items-center justify-center cursor-pointer min-h-[140px] ${isDragging
+                    ? 'border-emerald-500 bg-emerald-500/10'
+                    : 'border-slate-300 dark:border-zinc-700 bg-slate-900/5 dark:bg-black/30 hover:border-zinc-500'
+                  }`}
+                onClick={() => {
+                  const el = document.getElementById('dues-file-input');
+                  if (el) el.click();
+                }}
+              >
+                <input
+                  type="file"
+                  id="dues-file-input"
+                  accept="image/png, image/jpeg, image/webp"
+                  className="hidden"
+                  onChange={(e) => handleFileDrop(e.target.files)}
+                />
 
-              {isProcessingFile ? (
-                <div className="flex flex-col items-center space-y-2">
-                  <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                    Compressing image payload on HTML5 Canvas...
-                  </span>
-                </div>
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-zinc-500 dark:text-zinc-400 mb-2" />
-                  <p className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200">
-                    Drag & drop your receipt image here, or <span className="text-emerald-600 dark:text-emerald-400 underline">browse</span>
-                  </p>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                    Image ONLY — Supports PNG, JPG, and WEBP formats
-                  </p>
-                </>
-              )}
-            </div>
-          ) : (
-            /* High-Contrast Glass Thumbnail Preview with Metrics & Remove */
-            <div className="p-4 rounded-xl border border-white/80 dark:border-white/10 bg-slate-900/5 dark:bg-black/50 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
-              <div className="flex items-center space-x-3 min-w-0">
-                {processedFile.fileType === 'image' && processedFile.dataUrl ? (
-                  <img
-                    src={processedFile.dataUrl}
-                    alt="Receipt Thumbnail"
-                    className="w-16 h-16 rounded-lg object-cover border border-white/20 shadow-md shrink-0"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-lg bg-zinc-800 flex items-center justify-center text-white shrink-0 font-mono font-bold text-xs">
-                    <FileText className="w-8 h-8 text-emerald-400" />
-                  </div>
-                )}
-
-                <div className="min-w-0">
-                  <div className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm truncate">
-                    {processedFile.fileName}
-                  </div>
-                  <div className="flex items-center space-x-2 mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
-                    <span>Original: {processedFile.originalSizeText}</span>
-                    <span>•</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                      Processed: {processedFile.processedSizeText}
+                {isProcessingFile ? (
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      Compressing image payload on HTML5 Canvas...
                     </span>
                   </div>
-                  <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-                    Canvas Compression Applied
-                  </span>
-                </div>
+                ) : (
+                  <>
+                    <Upload className="w-8 h-8 text-zinc-500 dark:text-zinc-400 mb-2" />
+                    <p className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                      Drag & drop your receipt image here, or <span className="text-emerald-600 dark:text-emerald-400 underline">browse</span>
+                    </p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                      Image ONLY — Supports PNG, JPG, and WEBP formats
+                    </p>
+                  </>
+                )}
               </div>
+            ) : (
+              /* High-Contrast Glass Thumbnail Preview with Metrics & Remove */
+              <div className="p-4 rounded-xl border border-white/80 dark:border-white/10 bg-slate-900/5 dark:bg-black/50 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                <div className="flex items-center space-x-3 min-w-0">
+                  {processedFile.fileType === 'image' && processedFile.dataUrl ? (
+                    <img
+                      src={processedFile.dataUrl}
+                      alt="Receipt Thumbnail"
+                      className="w-16 h-16 rounded-lg object-cover border border-white/20 shadow-md shrink-0"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-zinc-800 flex items-center justify-center text-white shrink-0 font-mono font-bold text-xs">
+                      <FileText className="w-8 h-8 text-emerald-400" />
+                    </div>
+                  )}
 
-              <button
-                type="button"
-                onClick={() => setProcessedFile(null)}
-                className="py-1.5 px-3 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20 transition-colors flex items-center space-x-1 cursor-pointer shrink-0 min-h-[36px]"
-              >
-                <X className="w-4 h-4" />
-                <span>Remove File</span>
-              </button>
-            </div>
-          )}
-        </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm truncate">
+                      {processedFile.fileName}
+                    </div>
+                    <div className="flex items-center space-x-2 mt-1 text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
+                      <span>Original: {processedFile.originalSizeText}</span>
+                      <span>•</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        Processed: {processedFile.processedSizeText}
+                      </span>
+                    </div>
+                    <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                      Canvas Compression Applied
+                    </span>
+                  </div>
+                </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting || isProcessingFile}
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/30 transition-all duration-150 cursor-pointer min-h-[44px]"
-        >
-          <Upload className="w-4 h-4" />
-          <span>Submit Dues Proof ({formattedDisplayAmount || '₦0'})</span>
-        </button>
+                <button
+                  type="button"
+                  onClick={() => setProcessedFile(null)}
+                  className="py-1.5 px-3 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500/20 transition-colors flex items-center space-x-1 cursor-pointer shrink-0 min-h-[36px]"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Remove File</span>
+                </button>
+              </div>
+            )}
+          </div>
 
-      </form>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isSubmitting || isProcessingFile}
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-zinc-950 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/30 transition-all duration-150 cursor-pointer min-h-[44px]"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Submit Dues Proof ({formattedDisplayAmount || '₦0'})</span>
+          </button>
+
+        </form>
       )}
     </div>
   );

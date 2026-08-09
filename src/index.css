@@ -4,7 +4,12 @@
 
 /* Universal Tactile Click Feedback for all Buttons, Clickable Cards, Links & Interactive Elements */
 @layer base {
-  html, body {
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
     scroll-behavior: smooth;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;

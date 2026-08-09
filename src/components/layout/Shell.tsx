@@ -52,21 +52,21 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
     },
     ...(isApprovalsRole
       ? [
-          {
-            id: 'approvals',
-            label: 'Approvals',
-            icon: ShieldCheck,
-            description: 'Evaluation & Approvals Queue',
-          },
-        ]
+        {
+          id: 'approvals',
+          label: 'Approvals',
+          icon: ShieldCheck,
+          description: 'Evaluation & Approvals Queue',
+        },
+      ]
       : [
-          {
-            id: 'requests',
-            label: 'Requests',
-            icon: FileText,
-            description: 'Dues Proofs & Travel Permits',
-          },
-        ]),
+        {
+          id: 'requests',
+          label: 'Requests',
+          icon: FileText,
+          description: 'Dues Proofs & Travel Permits',
+        },
+      ]),
     {
       id: 'settings',
       label: 'Settings',
@@ -76,25 +76,23 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
   ];
 
   return (
-    <div className="h-screen w-screen overflow-hidden text-zinc-900 dark:text-zinc-100 font-sans flex flex-col antialiased selection:bg-zinc-900 selection:text-white relative bg-transparent">
-      
+    <div className="h-[100dvh] w-full max-w-full overflow-hidden text-zinc-900 dark:text-zinc-100 font-sans flex flex-col antialiased selection:bg-zinc-900 selection:text-white relative bg-transparent">
+
       {/* Fixed Wallpaper Canvas Engine (Zero-Flash Theme Switching) */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-slate-200 dark:bg-zinc-950">
         {/* Light Theme Background Wallpaper */}
         <img
           src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920&auto=format&fit=crop"
           alt="Light Theme Ambient Background"
-          className={`w-full h-full object-cover scale-105 filter blur-[10px] absolute inset-0 transition-opacity duration-300 ${
-            theme === 'light' ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`w-full h-full object-cover scale-105 filter blur-[10px] absolute inset-0 transition-opacity duration-300 ${theme === 'light' ? 'opacity-100' : 'opacity-0'
+            }`}
         />
         {/* Dark Theme Background Wallpaper */}
         <img
           src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop"
           alt="Dark Theme Ambient Background"
-          className={`w-full h-full object-cover scale-105 filter blur-[10px] absolute inset-0 transition-opacity duration-300 ${
-            theme === 'dark' ? 'opacity-90' : 'opacity-0'
-          }`}
+          className={`w-full h-full object-cover scale-105 filter blur-[10px] absolute inset-0 transition-opacity duration-300 ${theme === 'dark' ? 'opacity-90' : 'opacity-0'
+            }`}
         />
         {/* Subtle Dark Mode Gradient Tint for Contrast & Readability */}
         <div className="absolute inset-0 bg-transparent dark:bg-black/30 pointer-events-none" />
@@ -116,9 +114,8 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
 
         {/* Desktop Collapsible Left Sidebar */}
         <aside
-          className={`hidden md:flex flex-col h-full shrink-0 z-40 overflow-y-auto border-r border-slate-200/80 dark:border-white/10 bg-white/80 backdrop-blur-xl shadow-sm dark:bg-zinc-950/80 dark:backdrop-blur-xl transition-all duration-300 ease-in-out select-none ${
-            isSidebarExpanded ? 'w-[260px]' : 'w-[70px]'
-          }`}
+          className={`hidden md:flex flex-col h-full shrink-0 z-40 overflow-y-auto border-r border-slate-200/80 dark:border-white/10 bg-white/80 backdrop-blur-xl shadow-sm dark:bg-zinc-950/80 dark:backdrop-blur-xl transition-all duration-300 ease-in-out select-none ${isSidebarExpanded ? 'w-[260px]' : 'w-[70px]'
+            }`}
         >
           {/* Top Collapse Button Bar */}
           <div className="p-3 border-b border-slate-900/10 dark:border-white/10 flex items-center justify-between">
@@ -161,11 +158,10 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full py-3 px-3 min-h-[44px] rounded-xl font-medium text-[0.875rem] flex items-center space-x-3 transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.98] cursor-pointer select-none group ${
-                    isActive
+                  className={`w-full py-3 px-3 min-h-[44px] rounded-xl font-medium text-[0.875rem] flex items-center space-x-3 transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.98] cursor-pointer select-none group ${isActive
                       ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md font-bold'
                       : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-zinc-800/80'
-                  }`}
+                    }`}
                   title={item.label}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-150" />
@@ -206,7 +202,7 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
         </aside>
 
         {/* Central Canvas Area with Mobile Padding Optimization & Clearance */}
-        <main className="flex-1 h-full overflow-y-auto scrollbar-thin overscroll-stretch py-4 sm:py-6 px-3 sm:px-6 lg:px-8 max-w-full pb-28 md:pb-12">
+        <main className="flex-1 h-full overflow-y-auto scrollbar-thin overscroll-stretch py-4 sm:py-6 px-3 sm:px-6 lg:px-8 max-w-full pb-36 md:pb-12">
           {children}
         </main>
 
@@ -223,11 +219,10 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`py-2 px-2 min-h-[44px] rounded-xl flex flex-col items-center justify-center space-y-1 transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.98] cursor-pointer select-none group ${
-                  isActive
+                className={`py-2 px-2 min-h-[44px] rounded-xl flex flex-col items-center justify-center space-y-1 transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.98] cursor-pointer select-none group ${isActive
                     ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold shadow-md'
                     : 'text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon className="w-5 h-5 group-hover:scale-110 group-active:scale-95 transition-transform duration-150" />
                 <span className="text-[0.6875rem] font-medium leading-none truncate max-w-full">{item.label}</span>

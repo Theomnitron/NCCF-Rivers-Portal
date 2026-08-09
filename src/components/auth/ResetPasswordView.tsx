@@ -76,7 +76,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
   };
 
   return (
-    <div className="dark min-h-screen w-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden font-sans select-none">
+    <div className="dark min-h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-y-auto font-sans select-none">
       {/* Background Decor */}
       <div
         className="absolute inset-0 bg-cover bg-center filter blur-[12px] scale-105 pointer-events-none opacity-80"

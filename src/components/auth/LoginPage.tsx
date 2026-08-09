@@ -150,7 +150,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="dark min-h-screen w-full bg-slate-950 text-slate-100 flex flex-col lg:flex-row overflow-hidden font-sans relative selection:bg-blue-600 selection:text-white transition-colors duration-200">
+    <div className="dark min-h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden font-sans relative selection:bg-blue-600 selection:text-white transition-colors duration-200">
 
       {/* 1. ATMOSPHERIC BACKDROP IMAGE WITH SLIGHT ELEGANT BLUR */}
       <div
@@ -242,10 +242,10 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL (Desktop 40% Width / Mobile Main Container) */}
-      <div className="flex-1 lg:w-[40%] flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-screen lg:min-h-0 z-10">
+      <div className="flex-1 lg:w-[40%] flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-[100dvh] lg:min-h-0 z-10 py-6 lg:py-12">
 
         {/* Mobile Header (< lg) */}
-        <div className="lg:hidden flex flex-col items-center text-center mb-6 z-10 pt-4">
+        <div className="lg:hidden flex flex-col items-center text-center mb-4 z-10">
           <div className="relative flex items-center justify-center p-2 mb-2">
             {/* <div className="absolute inset-0 rounded-full bg-blue-500/30 animate-ping pointer-events-none" /> */}
             <div className="absolute -inset-2 border border-blue-500/30 rounded-full animate-ping pointer-events-none" />
@@ -565,8 +565,8 @@ export const LoginPage: React.FC = () => {
                   )}
                 </button>
 
-                {/* {/* Dev & Testing Helper }
-                <div className="pt-2 text-center">
+                {/* Dev & Testing Helper */}
+                {/* <div className="pt-2 text-center">
                   <button
                     type="button"
                     onClick={() => {
@@ -576,15 +576,14 @@ export const LoginPage: React.FC = () => {
                     className="text-[11px] font-semibold text-blue-400 hover:underline cursor-pointer"
                   >
                     Preview Reset Password Form
-                  </button> */}
-              </div>
-            </form>
-          </motion.div>
+                  </button>
+                </div> */}
+              </form>
+            </motion.div>
           </div>
-  )
-}
-      </AnimatePresence >
+        )}
+      </AnimatePresence>
 
-    </div >
+    </div>
   );
 };

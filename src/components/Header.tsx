@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateTab }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 dark:bg-zinc-950/80 dark:backdrop-blur-xl dark:border-white/10 shadow-sm py-2.5 px-4 sm:px-6 transition-colors duration-200">
+    <header className="shrink-0 sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 dark:bg-zinc-950/80 dark:backdrop-blur-xl dark:border-white/10 shadow-sm py-2.5 px-4 sm:px-6 transition-colors duration-200">
       <div className="w-full flex items-center justify-between">
         
         {/* TOP LEFT: NCCF Logo + "NCCF" / "Rivers State" (No hamburger icon here) */}
