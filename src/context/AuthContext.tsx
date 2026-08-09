@@ -259,8 +259,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user && isMounted) {
           setUser(session.user);
           setActiveUserState(null);
+          const localMatch = allUsers.find(
+            (u) => (session.user.id && u.userId === session.user.id) || (session.user.email && u.email?.toLowerCase() === session.user.email.toLowerCase())
+          );
+          if (localMatch) setCorperProfile(localMatch);
           const profile = await fetchCorperProfileForUser(session.user);
-          if (isMounted) {
+          if (isMounted && profile) {
             setCorperProfile(profile);
           }
         } else if (isMounted) {
@@ -286,8 +290,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setActiveUserState(null);
 
       if (currentUser) {
+        const localMatch = allUsers.find(
+          (u) => (currentUser.id && u.userId === currentUser.id) || (currentUser.email && u.email?.toLowerCase() === currentUser.email.toLowerCase())
+        );
+        if (localMatch) setCorperProfile(localMatch);
         const profile = await fetchCorperProfileForUser(currentUser);
-        if (isMounted) {
+        if (isMounted && profile) {
           setCorperProfile(profile);
         }
       } else {
@@ -382,8 +390,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!error && data?.user) {
         setUser(data.user);
+        const localMatch = allUsers.find(
+          (u) => (data.user.id && u.userId === data.user.id) || (data.user.email && u.email?.toLowerCase() === data.user.email.toLowerCase())
+        );
+        if (localMatch) setCorperProfile(localMatch);
         const profile = await fetchCorperProfileForUser(data.user);
-        setCorperProfile(profile);
+        if (profile) {
+          setCorperProfile(profile);
+        }
       }
 
       return { data, error };
@@ -507,9 +521,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Primary active user resolution:
-  // When logged in via Supabase, corperProfile takes absolute precedence for privacy & session safety.
-  // activeUserState is only used if explicitly selected in Dev Switcher or when guest mode.
-  const activeUser = corperProfile || activeUserState || allUsers[0] || seedMockUsers[0];
+  // When logged in via Supabase, user/corperProfile takes absolute precedence for privacy & session safety.
+  // It will NEVER fall back to another user's profile in allUsers if an authenticated session exists.
+  const activeUser = React.useMemo(() => {
+    if (corperProfile) return corperProfile;
+
+    if (user) {
+      // 1. Search in allUsers roster by userId or email
+      const matchedInRoster = allUsers.find(
+        (u) =>
+          (user.id && u.userId === user.id) ||
+          (user.email && u.email?.toLowerCase() === user.email.toLowerCase())
+      );
+      if (matchedInRoster) return matchedInRoster;
+
+      // 2. Synthesize a temporary profile for the authenticated user so we NEVER display another user's data
+      const userEmail = user.email || 'corper@nccf-rivers.org';
+      const emailPrefix = userEmail.split('@')[0];
+      const nameParts = emailPrefix.split(/[\._\-]/).filter(Boolean);
+      const firstName = nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : 'Corps';
+      const lastName = nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : 'Member';
+
+      const tempProfile: CorperProfile = {
+        id: user.id || 'temp-user-id',
+        userId: user.id,
+        firstName,
+        lastName,
+        displayName: `${firstName} ${lastName}`,
+        gender: 'M',
+        stateCode: 'RV/26A/0000',
+        email: userEmail,
+        phone: '08000000000',
+        dateOfBirth: '2000-01-01',
+        stateOfOrigin: 'Rivers',
+        courseOfStudy: 'General',
+        schoolGraduatedFrom: 'Higher Institution',
+        maritalStatus: 'Not Engaged',
+        houseStatus: 'Member',
+        systemCategory: 'member',
+        systemAccessCategory: 'member',
+        roomName: 'Joseph',
+        serviceUnit: 'General',
+        serviceUnits: ['General'],
+        presence: 'Present',
+        tier: 7,
+        targets: { maintenance: 15000, feeding: 10000 },
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+        hasTripartitePrivileges: false,
+        isExempted: false,
+      };
+      return tempProfile;
+    }
+
+    return activeUserState || allUsers[0] || seedMockUsers[0];
+  }, [corperProfile, user, allUsers, activeUserState]);
 
   const setActiveUser = (userProfile: CorperProfile) => {
     setTimeout(() => setActiveUserState(userProfile), 0);

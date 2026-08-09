@@ -55,7 +55,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       <div className="dark min-h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
         {/* Atmospheric Backdrop Image with Elegant Blur */}
         <div 
-          className="absolute inset-0 bg-cover bg-center filter blur-[10px] scale-105 pointer-events-none opacity-90 transition-all duration-500" 
+          className="absolute -inset-8 bg-cover bg-center filter blur-[10px] scale-110 pointer-events-none opacity-90 transition-all duration-500" 
           style={{ backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2000&q=80')` }}
         />
         
