@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Universal Tactile Click Feedback for all Buttons, Clickable Cards, Links & Interactive Elements */
+@layer base {
+  html, body {
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  button,
+  a,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  .cursor-pointer,
+  [onclick],
+  .clickable-card {
+    transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1), filter 0.1s cubic-bezier(0.2, 0, 0, 1), background-color 0.1s cubic-bezier(0.2, 0, 0, 1) !important;
+  }
+
+  button:active,
+  a:active,
+  [role="button"]:active,
+  input[type="button"]:active,
+  input[type="submit"]:active,
+  input[type="reset"]:active,
+  .cursor-pointer:active,
+  [onclick]:active,
+  .clickable-card:active {
+    transform: scale(0.95) !important;
+    filter: brightness(0.82) contrast(1.05) !important;
+  }
+}
+
+/* Rubberband / Overscroll Stretch Micro-Interaction */
+.overscroll-stretch {
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+

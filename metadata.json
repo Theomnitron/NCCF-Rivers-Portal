@@ -1,0 +1,6 @@
+{
+  "name": "NCCF Rivers State Web Portal",
+  "description": "Nigeria Christian Corpers' Fellowship (NCCF) Rivers State Chapter Portal - Corper Profiles, Role Tiers, Dues, and House Management",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,13 @@
+# Robots.txt for NCCF Rivers State Portal
+# Allow indexing of public landing pages while protecting sensitive internal API endpoints and admin functions
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /context/
+Disallow: /private/
+Disallow: /*.json$
+
+# Official Sitemap Location
+Sitemap: /sitemap.xml
