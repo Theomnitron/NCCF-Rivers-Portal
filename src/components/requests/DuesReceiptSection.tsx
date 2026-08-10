@@ -70,7 +70,7 @@ export const DuesReceiptSection: React.FC = () => {
   // Account details for display
   const accountDetails = {
     accountName: 'Richard Emmanuel Okon',
-    accountNumber: '806 039 7045',
+    accountNumber: '8060397045',
     bankName: 'OPAY',
   };
 
@@ -181,11 +181,11 @@ export const DuesReceiptSection: React.FC = () => {
             <span>Submit Dues Clearance Receipt</span>
           </h3>
           <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
-            Submit your payment receipt(s) of bank transfers made to <strong>{accountDetails.accountNumber}</strong>•<strong>{accountDetails.accountName}</strong>•<strong>{accountDetails.bankName}</strong>  for monthly house upkeep & kitchen assessments
+            Make payments for house dues to the account below and submit your payment receipt(s) in the drop box.
           </p>
         </div>
         <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold tracking-wider rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800">
-          ROLLING CYCLE '26 - '27
+          {accountDetails.accountNumber} • {accountDetails.bankName} • {accountDetails.accountName}
         </span>
       </div>
 
@@ -233,8 +233,8 @@ export const DuesReceiptSection: React.FC = () => {
                 type="button"
                 onClick={() => handleSubTypeChange('combined')}
                 className={`p-3.5 rounded-xl border text-left transition-all min-h-[48px] cursor-pointer flex items-center justify-between ${subType === 'combined'
-                    ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md font-bold'
-                    : 'bg-slate-900/5 dark:bg-black/40 border-slate-900/10 dark:border-white/10 text-zinc-800 dark:text-zinc-200 hover:bg-slate-900/10'
+                  ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md font-bold'
+                  : 'bg-slate-900/5 dark:bg-black/40 border-slate-900/10 dark:border-white/10 text-zinc-800 dark:text-zinc-200 hover:bg-slate-900/10'
                   }`}
               >
                 <div>
@@ -255,8 +255,8 @@ export const DuesReceiptSection: React.FC = () => {
                   type="button"
                   onClick={() => handleSubTypeChange('maintenance')}
                   className={`p-3.5 rounded-xl border text-left transition-all min-h-[48px] cursor-pointer flex items-center justify-between ${subType === 'maintenance'
-                      ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md font-bold'
-                      : 'bg-slate-900/5 dark:bg-black/40 border-slate-900/10 dark:border-white/10 text-zinc-800 dark:text-zinc-200 hover:bg-slate-900/10'
+                    ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md font-bold'
+                    : 'bg-slate-900/5 dark:bg-black/40 border-slate-900/10 dark:border-white/10 text-zinc-800 dark:text-zinc-200 hover:bg-slate-900/10'
                     }`}
                 >
                   <div>
@@ -332,8 +332,8 @@ export const DuesReceiptSection: React.FC = () => {
                   handleFileDrop(e.dataTransfer.files);
                 }}
                 className={`border-2 border-dashed rounded-xl p-6 text-center transition-all flex flex-col items-center justify-center cursor-pointer min-h-[140px] ${isDragging
-                    ? 'border-emerald-500 bg-emerald-500/10'
-                    : 'border-slate-300 dark:border-zinc-700 bg-slate-900/5 dark:bg-black/30 hover:border-zinc-500'
+                  ? 'border-emerald-500 bg-emerald-500/10'
+                  : 'border-slate-300 dark:border-zinc-700 bg-slate-900/5 dark:bg-black/30 hover:border-zinc-500'
                   }`}
                 onClick={() => {
                   const el = document.getElementById('dues-file-input');

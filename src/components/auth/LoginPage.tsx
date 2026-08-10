@@ -569,7 +569,7 @@ export const LoginPage: React.FC = () => {
                 </button>
 
                 {/* Dev & Testing Helper */}
-                <div className="pt-2 text-center">
+                {/* <div className="pt-2 text-center">
                   <button
                     type="button"
                     onClick={() => {
@@ -580,7 +580,7 @@ export const LoginPage: React.FC = () => {
                   >
                     Preview Reset Password Form
                   </button>
-                </div>
+                </div> */}
               </form>
             </motion.div>
           </div>
