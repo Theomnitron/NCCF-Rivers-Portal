@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { hasTripartiteAccess } from '../../types/corper';
 import { RevealOnScroll } from '../common/RevealOnScroll';
+import { ZoomableImageViewer } from '../common/ZoomableImageViewer';
 import {
   useRequests,
   DuesReceiptSubmission,
@@ -786,54 +787,17 @@ export const ApprovalsView: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 1: Document / Receipt File Preview Modal */}
+      {/* MODAL 1: Document / Receipt File Preview Modal with Zoom & Rotation Controls */}
       {previewItem && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-slate-900/20 dark:border-white/15 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-900/10 dark:border-white/10 pb-3">
-              <h3 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-white">
-                {previewItem.title}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setPreviewItem(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
-              {previewItem.details}
-            </p>
-
-            <div className="rounded-xl border border-slate-900/10 dark:border-white/10 bg-black/80 p-4 flex items-center justify-center min-h-[220px]">
-              {previewItem.fileDataUrl && previewItem.fileType === 'image' ? (
-                <img
-                  src={previewItem.fileDataUrl}
-                  alt="Proof"
-                  className="max-h-[300px] object-contain rounded-lg shadow-md"
-                />
-              ) : (
-                <div className="text-center space-y-2">
-                  <FileText className="w-12 h-12 text-emerald-400 mx-auto" />
-                  <div className="text-xs font-mono font-bold text-white">
-                    {previewItem.fileName || 'Official Document Attached'}
-                  </div>
-                  <p className="text-[11px] text-zinc-400">PDF document ready for verification</p>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setPreviewItem(null)}
-              className="w-full py-2.5 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold text-xs cursor-pointer min-h-[40px]"
-            >
-              Close Inspection
-            </button>
-          </div>
-        </div>
+        <ZoomableImageViewer
+          src={previewItem.fileDataUrl || ''}
+          alt={previewItem.title}
+          title={previewItem.title}
+          details={previewItem.details}
+          fileName={previewItem.fileName}
+          fileType={previewItem.fileType}
+          onClose={() => setPreviewItem(null)}
+        />
       )}
 
       {/* MODAL 2: Modify & Approve Dues Modal */}
