@@ -39,9 +39,9 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
   const downloadSampleCsv = () => {
     const csvHeader = 'state_code,first_name,middle_name,last_name,gender,email,phone_number,date_of_birth,state_of_origin,course_of_study,school_graduated_from,marital_status,house_status,executive_post,system_category,room_name,service_units,presence,avatar_url,next_of_kin_name,next_of_kin_phone\n';
     const sampleRows = [
-      "RV/26A/1102,Chinedu,O.,Okonkwo,M,chinedu@nysc.gov.ng,08031112233,1999-04-12,Enugu,Computer Science,University of Nigeria,Not Engaged,,,admin,NCCF State House,,Present,https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
-      "RV/26A/2290,Victor,P,Odili,M,peter@nccf.org.ng,08149998877,2000-08-19,Kano,Microbiology,ABU Zaria,Not Engaged,Executive,President,tripartite,Papa's,Welfare,Present,https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=250",
-      'RV/26A/3341,David,A.,Adeyemi,M,david@nysc.gov.ng,08023334455,1998-11-05,Osun,Civil Engineering,OAU,Engaged,Member,,member,Judah,"Bible Study, Music",Travelled,https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
+      "RV/26A/1102,Chinedu,O.,Okonkwo,M,chinedu@nysc.gov.ng,08031112233,1999-04-12,Enugu,Computer Science,University of Nigeria,Not Engaged,,,admin,NCCF State House,,Present,https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250,Pastor David Okonkwo (Father),09000000000",
+      "RV/26A/2290,Victor,P,Odili,M,peter@nccf.org.ng,08149998877,2000-08-19,Kano,Microbiology,ABU Zaria,Not Engaged,Executive,President,tripartite,Papa's,Welfare,Present,https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=250,Pastor David Okonkwo (Father),09000000000",
+      'RV/26A/3341,David,A.,Adeyemi,M,david@nysc.gov.ng,08023334455,1998-11-05,Osun,Civil Engineering,OAU,Engaged,Member,,member,Judah,"Bible Study, Music",Travelled,https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250,Pastor David Okonkwo (Father),09000000000',
     ].join('\n');
 
     const blob = new Blob([csvHeader + sampleRows], { type: 'text/csv;charset=utf-8;' });
@@ -473,11 +473,10 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
               <button
                 type="button"
                 onClick={() => setIngestionMode('skip')}
-                className={`p-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col justify-between cursor-pointer ${
-                  ingestionMode === 'skip'
+                className={`p-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col justify-between cursor-pointer ${ingestionMode === 'skip'
                     ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md ring-2 ring-zinc-900 dark:ring-white border border-zinc-900 dark:border-white'
                     : 'bg-white/60 dark:bg-zinc-900/60 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-slate-900/10 dark:border-white/10'
-                }`}
+                  }`}
               >
                 <span className="font-bold flex items-center justify-between">
                   <span>1. Append / Skip Existing</span>
@@ -491,11 +490,10 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
               <button
                 type="button"
                 onClick={() => setIngestionMode('overwrite')}
-                className={`p-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col justify-between cursor-pointer ${
-                  ingestionMode === 'overwrite'
+                className={`p-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col justify-between cursor-pointer ${ingestionMode === 'overwrite'
                     ? 'bg-amber-500 text-zinc-950 font-black shadow-md ring-2 ring-amber-400 border border-amber-500'
                     : 'bg-white/60 dark:bg-zinc-900/60 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-slate-900/10 dark:border-white/10'
-                }`}
+                  }`}
               >
                 <span className="font-bold flex items-center justify-between">
                   <span>2. Overwrite Existing</span>
@@ -509,11 +507,10 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
               <button
                 type="button"
                 onClick={() => setIngestionMode('replaceAll')}
-                className={`p-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col justify-between cursor-pointer ${
-                  ingestionMode === 'replaceAll'
+                className={`p-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col justify-between cursor-pointer ${ingestionMode === 'replaceAll'
                     ? 'border-red-500 bg-red-500/10 text-red-600 dark:text-red-400 ring-2 ring-red-500 font-bold shadow-md'
                     : 'bg-white/60 dark:bg-zinc-900/60 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-slate-900/10 dark:border-white/10'
-                }`}
+                  }`}
               >
                 <span className="font-bold text-red-600 dark:text-red-400 flex items-center justify-between">
                   <span>3. Delete All & Replace</span>
@@ -569,11 +566,10 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleFileDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-all duration-200 ${
-            isDragging
+          className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-all duration-200 ${isDragging
               ? 'border-zinc-900 bg-zinc-900/5 dark:border-white dark:bg-white/10 scale-[1.01]'
               : 'border-slate-900/20 dark:border-white/20 hover:border-zinc-900 dark:hover:border-zinc-100 bg-slate-900/5 dark:bg-black/30'
-          }`}
+            }`}
         >
           <input
             type="file"
