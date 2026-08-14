@@ -212,13 +212,13 @@ export const TripartiteGovernanceCanvas: React.FC<{ currentTab?: string; onNavig
                   </span>
                   <span className="text-zinc-400 dark:text-zinc-600">•</span>
                   <span className="font-semibold text-zinc-900 dark:text-white">
-                    {activeUser.executivePost || (activeUser.systemCategory === 'tripartite' ? 'State President' : 'Executive Member')}
+                    {activeUser.executivePost || (activeUser.systemCategory === 'tripartite' ? activeUser.roomName : `${activeUser.roomName} Room`)}
                   </span>
                   <span className="text-zinc-400 dark:text-zinc-600">•</span>
                   <span className="text-[11px] font-bold tracking-wide bg-amber-500/10 text-amber-600 border border-amber-500/20 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
                     {activeUser.hasTripartitePrivileges
                       ? 'DELEGATED AUTHORITY'
-                      : 'TRIPARTITE'}
+                      : 'SPECIAL AUTHORITY'}
                   </span>
                 </div>
               </div>
@@ -297,7 +297,14 @@ export const TripartiteGovernanceCanvas: React.FC<{ currentTab?: string; onNavig
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">{activeUser.roomName} Room</span>
               </div>
 
-              {shouldDisplayUnit(activeUser) && (
+              {activeUser.houseStatus === 'Executive' && activeUser.systemCategory === 'tripartite' ? (
+                <div className="flex flex-col xs:flex-row xs:items-center justify-between py-1.5 border-b border-slate-900/10 dark:border-white/10 gap-1">
+                  <span className="text-zinc-600 dark:text-zinc-400 font-medium">Service Unit</span>
+                  <span className="inline-flex w-fit items-center px-2.5 py-0.5 rounded-lg text-xs font-bold tracking-wider bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 backdrop-blur-sm uppercase">
+                    TRIPARTITE
+                  </span>
+                </div>
+              ) : shouldDisplayUnit(activeUser) && (
                 <div className="flex flex-col xs:flex-row xs:items-center justify-between py-1.5 border-b border-slate-900/10 dark:border-white/10 gap-1">
                   <span className="text-zinc-600 dark:text-zinc-400 font-medium">Service Unit</span>
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">{formatServiceUnitText(activeUser)}</span>

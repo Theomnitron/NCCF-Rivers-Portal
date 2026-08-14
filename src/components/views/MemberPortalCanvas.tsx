@@ -164,7 +164,7 @@ export const MemberPortalCanvas: React.FC<{ currentTab?: string }> = ({ currentT
                     {activeUser.stateCode}
                   </span>
                   <span className="text-zinc-400 dark:text-zinc-600">•</span>
-                  <span className="text-zinc-900 dark:text-zinc-200 font-semibold">{activeUser.roomName}</span>
+                  <span className="text-zinc-900 dark:text-zinc-200 font-semibold">{activeUser.houseStatus === 'Executive' ? (activeUser.executivePost || activeUser.roomName) : `${activeUser.roomName} Room` } </span>
                   {activeUser.houseStatus === 'Executive' && activeUser.systemCategory === 'member' ? (
                     <>
                       <span className="text-zinc-400 dark:text-zinc-600">•</span>

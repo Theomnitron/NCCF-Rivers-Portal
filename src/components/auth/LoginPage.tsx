@@ -151,19 +151,19 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="dark min-h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col lg:flex-row overflow-hidden font-sans relative selection:bg-blue-600 selection:text-white transition-colors duration-200">
-      
+
       {/* 1. ATMOSPHERIC BACKDROP IMAGE WITH SLIGHT ELEGANT BLUR */}
-      <div 
-        className="absolute -inset-8 bg-cover bg-center filter blur-[10px] scale-110 pointer-events-none opacity-90 transition-all duration-500" 
+      <div
+        className="absolute -inset-8 bg-cover bg-center filter blur-[10px] scale-110 pointer-events-none opacity-90 transition-all duration-500"
         style={{ backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2000&q=80')` }}
       />
-      
+
       {/* 2. SUBTLE TRANSLUCENT TINT FOR CRISP TEXT LEGIBILITY (NOT CLOUDED) */}
       <div className="absolute inset-0 bg-black/60 pointer-events-none" />
 
       {/* LEFT PANEL (Desktop 60% Width Split-Screen) */}
       <div className="hidden lg:flex lg:w-[60%] flex-col justify-between p-12 lg:p-16 bg-zinc-900/20 relative overflow-hidden border-r border-white/10 backdrop-blur-xl">
-        
+
         {/* Decorative Glass Halos */}
         <div className="absolute -top-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-10 -right-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -185,7 +185,7 @@ export const LoginPage: React.FC = () => {
             </p>
           </div>
         </div>
-        
+
         {/* Middle Glassmorphic Floating Highlight Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -243,7 +243,7 @@ export const LoginPage: React.FC = () => {
 
       {/* RIGHT PANEL (Desktop 40% Width / Mobile Main Container) */}
       <div className="flex-1 lg:w-[40%] flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-[100dvh] lg:min-h-0 z-10 py-6 lg:py-12">
-        
+
         {/* Mobile Header (< lg) */}
         <div className="lg:hidden flex flex-col items-center text-center mb-4 z-10">
           <div className="relative flex items-center justify-center p-2 mb-2">
@@ -267,22 +267,20 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleModeSwitch('signin')}
-              className={`py-2.5 text-xs rounded-xl transition-all duration-200 z-10 cursor-pointer ${
-                authMode === 'signin'
+              className={`py-2.5 text-xs rounded-xl transition-all duration-200 z-10 cursor-pointer ${authMode === 'signin'
                   ? 'bg-blue-600 text-white shadow-md font-bold'
                   : 'text-slate-400 hover:text-white font-medium'
-              }`}
+                }`}
             >
               Sign In
             </button>
             <button
               type="button"
               onClick={() => handleModeSwitch('claim')}
-              className={`py-2.5 text-xs rounded-xl transition-all duration-200 z-10 cursor-pointer ${
-                authMode === 'claim'
+              className={`py-2.5 text-xs rounded-xl transition-all duration-200 z-10 cursor-pointer ${authMode === 'claim'
                   ? 'bg-blue-600 text-white shadow-md font-bold'
                   : 'text-slate-400 hover:text-white font-medium'
-              }`}
+                }`}
             >
               Claim Account
             </button>
@@ -341,7 +339,7 @@ export const LoginPage: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="corper@nysc.gov.ng"
+                    placeholder="e.g., acpapa.michael@nccf-rivers.org"
                     required
                     className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
                   />
@@ -418,7 +416,7 @@ export const LoginPage: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g., michael@nysc.gov.ng"
+                    placeholder="e.g., acpapa.michael@nccf-rivers.org"
                     required
                     className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
                   />
@@ -436,7 +434,7 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     value={stateCode}
                     onChange={(e) => setStateCode(e.target.value.toUpperCase())}
-                    placeholder="RV/26B/1590"
+                    placeholder="e.g., RV/26B/1590"
                     required
                     className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white uppercase placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-mono tracking-wider font-semibold"
                   />
@@ -526,11 +524,10 @@ export const LoginPage: React.FC = () => {
 
               {resetMsg && (
                 <div
-                  className={`mb-4 p-3 rounded-xl text-xs flex items-start space-x-2 ${
-                    resetMsg.type === 'success'
+                  className={`mb-4 p-3 rounded-xl text-xs flex items-start space-x-2 ${resetMsg.type === 'success'
                       ? 'bg-blue-500/10 border border-blue-500/20 text-blue-300'
                       : 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
-                  }`}
+                    }`}
                 >
                   {resetMsg.type === 'success' ? (
                     <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
@@ -550,7 +547,7 @@ export const LoginPage: React.FC = () => {
                     type="email"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
-                    placeholder="corper@nysc.gov.ng"
+                    placeholder="e.g., acpapa.michael@nccf-rivers.org"
                     required
                     className="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 font-medium"
                   />
