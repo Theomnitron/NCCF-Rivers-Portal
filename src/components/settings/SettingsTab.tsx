@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRequests } from '../../context/RequestsContext';
 import { useToast } from '../../context/ToastContext';
 import { evaluateTier } from '../../utils/tierEvaluator';
+import { ALL_SERVICE_UNITS } from '../../types/corper';
 import { processClientSideFile } from '../../utils/fileProcessor';
 import { uploadFileToStorage } from '../../utils/storage';
 import { RevealOnScroll } from '../common/RevealOnScroll';
@@ -46,15 +47,7 @@ const ROOM_OPTIONS = [
   "Uncle's",
 ];
 
-const SERVICE_UNITS = [
-  'Bible Study',
-  'Choir',
-  'Evangelism',
-  'Welfare',
-  'Prayer',
-  'Publicity',
-  'Usher',
-];
+const SERVICE_UNITS = ALL_SERVICE_UNITS;
 
 export const SettingsTab: React.FC = () => {
   const { activeUser, updateUserProfile, signOut } = useAuth();
@@ -71,7 +64,7 @@ export const SettingsTab: React.FC = () => {
     return activeUser.serviceUnit
       .split(',')
       .map((s) => s.trim())
-      .filter((s) => SERVICE_UNITS.includes(s));
+      .filter((s) => (SERVICE_UNITS as readonly string[]).includes(s));
   });
   const [editedMarital, setEditedMarital] = useState(activeUser.maritalStatus);
 

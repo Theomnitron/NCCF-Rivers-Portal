@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { HouseStatus, SystemCategory, PresenceStatus } from '../../types/corper';
+import { HouseStatus, SystemCategory, PresenceStatus, ALL_SERVICE_UNITS } from '../../types/corper';
 import { isValidStateCode } from '../../utils/sanitizers';
 import { X, UserPlus, CheckCircle2, AlertCircle, Save, HeartPulse } from 'lucide-react';
 
@@ -73,15 +73,7 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
     'Taraba', 'Yobe', 'Zamfara'
   ]
 
-  const availableServiceUnits = [
-    'Bible Study',
-    'Choir',
-    'Evangelism',
-    'Welfare',
-    'Prayer',
-    'Publicity',
-    'Ushering',
-  ];
+  const availableServiceUnits = ALL_SERVICE_UNITS;
 
   const toggleUnit = (unit: string) => {
     if (selectedUnits.includes(unit)) {

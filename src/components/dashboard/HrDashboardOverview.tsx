@@ -5,6 +5,7 @@ import { getStoredUserLedger } from '../../data/initialLedger';
 import { calculateWaterfallDues, getCurrentActiveLedgerMonth } from '../../utils/duesCalculator';
 import { TIER_DEFINITIONS } from '../../utils/tierEvaluator';
 import { RevealOnScroll } from '../common/RevealOnScroll';
+import { ALL_SERVICE_UNITS } from '../../types/corper';
 import {
   Users,
   Coins,
@@ -19,15 +20,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-const SERVICE_UNITS_LIST = [
-  'Bible Study',
-  'Choir',
-  'Evangelism',
-  'Welfare',
-  'Prayer',
-  'Publicity',
-  'Ushering',
-];
+const SERVICE_UNITS_LIST = ALL_SERVICE_UNITS;
 
 interface HrDashboardOverviewProps {
   onNavigateTab?: (tab: string) => void;
@@ -131,8 +124,14 @@ export const HrDashboardOverview: React.FC<HrDashboardOverviewProps> = ({ onNavi
   // Population Breakdown By Service Unit
   const unitBreakdown = SERVICE_UNITS_LIST.map((unitName) => {
     const count = allUsers.filter((u) => {
-      if (!u.serviceUnit) return false;
-      return u.serviceUnit.toLowerCase().includes(unitName.toLowerCase());
+      if (Array.isArray(u.serviceUnits) && u.serviceUnits.some((su) => su.trim().toLowerCase() === unitName.toLowerCase())) {
+        return true;
+      }
+      if (u.serviceUnit) {
+        const parts = u.serviceUnit.split(',').map((s) => s.trim().toLowerCase());
+        return parts.includes(unitName.toLowerCase());
+      }
+      return false;
     }).length;
 
     return {
@@ -349,10 +348,10 @@ export const HrDashboardOverview: React.FC<HrDashboardOverviewProps> = ({ onNavi
                 <Building className="w-4 h-4 text-emerald-500" />
                 <span>Service Units Population Distribution</span>
               </h2>
-              <span className="text-[10px] font-mono text-zinc-500">7 Units</span>
+              <span className="text-[10px] font-mono text-zinc-500">{SERVICE_UNITS_LIST.length} Units</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {unitBreakdown.map((unit) => (
                 <div
                   key={unit.name}

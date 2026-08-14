@@ -2,14 +2,14 @@ export type Gender = 'Male' | 'Female' | 'M' | 'F';
 
 export type MaritalStatus = 'Not Engaged' | 'Engaged';
 
-export type HouseStatus = 
-  | 'Member' 
+export type HouseStatus =
+  | 'Member'
   | 'Room Gov'
   | 'Governor'
-  | 'Delegate' 
-  | 'Executive' 
-  | 'Tripartite' 
-  | 'Gee' 
+  | 'Delegate'
+  | 'Executive'
+  | 'Tripartite'
+  | 'Gee'
   | 'Admin';
 
 export type SystemCategory = 'member' | 'tripartite' | 'admin';
@@ -41,14 +41,14 @@ export type ExecutivePost =
   | 'Librarian';
 
 export type RoomName =
-  | '1G (Female)'
-  | '1G (Male)'
-  | '2G (Female)'
-  | '2G (Male)'
   | 'David'
   | 'Delegates (Female)'
   | 'Delegates (Male)'
   | 'Esther'
+  | 'Excos (Female)'
+  | 'Excos (Male)'
+  | 'Gees (Female)'
+  | 'Gees (Male)'
   | 'Hephzibah'
   | 'Joseph'
   | 'Judah'
@@ -65,10 +65,12 @@ export type RoomName =
 export type ServiceUnit =
   | 'Bible Study'
   | 'Choir'
+  | 'Drama'
   | 'Evangelism'
   | 'Welfare'
   | 'Prayer'
   | 'Publicity'
+  | 'TOS'
   | 'Ushering';
 
 export interface TargetFees {

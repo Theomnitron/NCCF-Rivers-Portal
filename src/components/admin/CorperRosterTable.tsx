@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CorperProfile, HouseStatus, PresenceStatus, hasTripartiteAccess } from '../../types/corper';
+import { CorperProfile, HouseStatus, PresenceStatus, hasTripartiteAccess, ALL_SERVICE_UNITS } from '../../types/corper';
 import { evaluateTier, getShortRoleTitle } from '../../utils/tierEvaluator';
 import { getStoredUserLedger } from '../../data/initialLedger';
 import { calculateWaterfallDues } from '../../utils/duesCalculator';
@@ -73,15 +73,7 @@ export const CorperRosterTable: React.FC<CorperRosterTableProps> = ({
     return Array.from(set).sort();
   }, [users]);
 
-  const DEFAULT_SERVICE_UNITS = useMemo(() => [
-    'Bible Study',
-    'Choir',
-    'Evangelism',
-    'Welfare',
-    'Prayer',
-    'Publicity',
-    'Ushering',
-  ], []);
+  const DEFAULT_SERVICE_UNITS = useMemo(() => ALL_SERVICE_UNITS, []);
 
   const availableUnits = useMemo(() => {
     const set = new Set<string>(DEFAULT_SERVICE_UNITS);

@@ -37,7 +37,7 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const downloadSampleCsv = () => {
-    const csvHeader = 'state_code,first_name,middle_name,last_name,gender,email,phone_number,date_of_birth,state_of_origin,course_of_study,school_graduated_from,marital_status,house_status,executive_post,system_category,room_name,service_units,presence,avatar_url\n';
+    const csvHeader = 'state_code,first_name,middle_name,last_name,gender,email,phone_number,date_of_birth,state_of_origin,course_of_study,school_graduated_from,marital_status,house_status,executive_post,system_category,room_name,service_units,presence,avatar_url,next_of_kin_name,next_of_kin_phone\n';
     const sampleRows = [
       "RV/26A/1102,Chinedu,O.,Okonkwo,M,chinedu@nysc.gov.ng,08031112233,1999-04-12,Enugu,Computer Science,University of Nigeria,Not Engaged,,,admin,NCCF State House,,Present,https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
       "RV/26A/2290,Victor,P,Odili,M,peter@nccf.org.ng,08149998877,2000-08-19,Kano,Microbiology,ABU Zaria,Not Engaged,Executive,President,tripartite,Papa's,Welfare,Present,https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=250",

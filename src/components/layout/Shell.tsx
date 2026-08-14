@@ -159,8 +159,8 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full py-3 px-3 min-h-[44px] rounded-xl font-medium text-[0.875rem] flex items-center space-x-3 transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.98] cursor-pointer select-none group ${isActive
-                      ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md font-bold'
-                      : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-zinc-800/80'
+                    ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md font-bold'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-zinc-800/80'
                     }`}
                   title={item.label}
                 >
@@ -220,8 +220,8 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`py-2 px-2 min-h-[44px] rounded-xl flex flex-col items-center justify-center space-y-1 transition-all duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.98] cursor-pointer select-none group ${isActive
-                    ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold shadow-md'
-                    : 'text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold shadow-md'
+                  : 'text-zinc-700 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                   }`}
               >
                 <Icon className="w-5 h-5 group-hover:scale-110 group-active:scale-95 transition-transform duration-150" />

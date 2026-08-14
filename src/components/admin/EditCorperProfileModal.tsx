@@ -7,6 +7,7 @@ import {
   PresenceStatus,
   MaritalStatus,
   SystemCategory,
+  ALL_SERVICE_UNITS,
 } from '../../types/corper';
 import { isValidStateCode } from '../../utils/sanitizers';
 import { X, CheckCircle2, GraduationCap, AlertCircle, Save, UserCheck, Home, Shield, User, Building, Phone, HeartPulse } from 'lucide-react';
@@ -16,15 +17,7 @@ export interface EditCorperProfileModalProps {
   onClose: () => void;
 }
 
-const AVAILABLE_SERVICE_UNITS = [
-  'Bible Study',
-  'Prayer',
-  'Welfare',
-  'Publicity',
-  'Choir',
-  'Evangelism',
-  'Ushering'
-];
+const AVAILABLE_SERVICE_UNITS = ALL_SERVICE_UNITS;
 
 const NIGERIAN_STATES = [
   'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
