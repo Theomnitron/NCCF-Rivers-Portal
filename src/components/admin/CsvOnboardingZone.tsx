@@ -127,6 +127,8 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
       const systemCategory = (rowObj.system_category || rowObj.systemCategory || 'member') as SystemCategory;
       const presence = (rowObj.presence || 'Present') as any;
       const isExempted = String(rowObj.is_exempted || rowObj.isExempted || rowObj.exempted || '').toLowerCase() === 'true';
+      const nextOfKinName = rowObj.next_of_kin_name || rowObj.nextOfKinName || rowObj.nok_name || rowObj.nokName || undefined;
+      const nextOfKinPhone = rowObj.next_of_kin_phone || rowObj.nextOfKinPhone || rowObj.next_of_kin_contact || rowObj.nok_phone || rowObj.nokPhone || undefined;
       const existingUser = allUsers.find((u) => u.stateCode.toUpperCase() === stateCode.toUpperCase());
       const avatarUrl = rowObj.avatar_url || rowObj.avatarUrl || values[18] || existingUser?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150';
 
@@ -163,6 +165,8 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
         presence,
         avatarUrl,
         isExempted,
+        nextOfKinName,
+        nextOfKinPhone,
       };
 
       const targets = calculateTargets(baseProfile as CorperProfile);

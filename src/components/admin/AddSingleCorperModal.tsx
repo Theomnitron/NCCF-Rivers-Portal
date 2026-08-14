@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { HouseStatus, SystemCategory, PresenceStatus } from '../../types/corper';
 import { isValidStateCode } from '../../utils/sanitizers';
-import { X, UserPlus, CheckCircle2, AlertCircle, Save } from 'lucide-react';
+import { X, UserPlus, CheckCircle2, AlertCircle, Save, HeartPulse } from 'lucide-react';
 
 interface AddSingleCorperModalProps {
   onClose: () => void;
@@ -24,6 +24,8 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
   const [gender, setGender] = useState<'M' | 'F'>('M');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [nextOfKinName, setNextOfKinName] = useState('');
+  const [nextOfKinPhone, setNextOfKinPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('1999-05-12');
   const [stateOfOrigin, setStateOfOrigin] = useState('Rivers');
   const [courseOfStudy, setCourseOfStudy] = useState('Computer Science');
@@ -107,6 +109,8 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
       gender,
       email,
       phone,
+      nextOfKinName: nextOfKinName.trim() || undefined,
+      nextOfKinPhone: nextOfKinPhone.trim() || undefined,
       dateOfBirth,
       stateOfOrigin,
       courseOfStudy,
@@ -294,6 +298,42 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
                   onChange={(e) => setDateOfBirth(e.target.value)}
                   className="w-full min-h-[40px] py-2 px-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-black/50 text-zinc-900 dark:text-white font-mono"
                 />
+              </div>
+            </div>
+
+            {/* Emergency Info (Next of Kin) */}
+            <div className="pt-2 border-t border-slate-900/10 dark:border-white/10 space-y-2">
+              <div className="flex items-center space-x-1.5">
+                <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 font-mono">
+                  Emergency Info (Next of Kin)
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-800 dark:text-zinc-300 font-semibold mb-1">
+                    Name of Next of Kin
+                  </label>
+                  <input
+                    type="text"
+                    value={nextOfKinName}
+                    onChange={(e) => setNextOfKinName(e.target.value)}
+                    placeholder="e.g. Mrs. Mary Adeleke"
+                    className="w-full min-h-[40px] py-2 px-3 rounded-xl border border-rose-500/20 dark:border-rose-500/30 bg-rose-500/5 dark:bg-rose-950/20 text-zinc-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-800 dark:text-zinc-300 font-semibold mb-1">
+                    Contact of Next of Kin
+                  </label>
+                  <input
+                    type="tel"
+                    value={nextOfKinPhone}
+                    onChange={(e) => setNextOfKinPhone(e.target.value)}
+                    placeholder="e.g. 08031234567"
+                    className="w-full min-h-[40px] py-2 px-3 rounded-xl border border-rose-500/20 dark:border-rose-500/30 bg-rose-500/5 dark:bg-rose-950/20 text-zinc-900 dark:text-white font-mono"
+                  />
+                </div>
               </div>
             </div>
           </div>

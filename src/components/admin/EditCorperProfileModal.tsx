@@ -9,7 +9,7 @@ import {
   SystemCategory,
 } from '../../types/corper';
 import { isValidStateCode } from '../../utils/sanitizers';
-import { X, CheckCircle2, GraduationCap, AlertCircle, Save, UserCheck, Home, Shield, User, Building, Phone } from 'lucide-react';
+import { X, CheckCircle2, GraduationCap, AlertCircle, Save, UserCheck, Home, Shield, User, Building, Phone, HeartPulse } from 'lucide-react';
 
 export interface EditCorperProfileModalProps {
   user: CorperProfile | null;
@@ -65,6 +65,8 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [nextOfKinName, setNextOfKinName] = useState('');
+  const [nextOfKinPhone, setNextOfKinPhone] = useState('');
   const [stateOfOrigin, setStateOfOrigin] = useState('');
   const [courseOfStudy, setCourseOfStudy] = useState('');
   const [schoolGraduatedFrom, setSchoolGraduatedFrom] = useState('');
@@ -91,6 +93,8 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
 
       setEmail(user.email || '');
       setPhone(user.phone || '');
+      setNextOfKinName(user.nextOfKinName || '');
+      setNextOfKinPhone(user.nextOfKinPhone || '');
       setStateOfOrigin(user.stateOfOrigin || 'Rivers');
       setCourseOfStudy(user.courseOfStudy || '');
       setSchoolGraduatedFrom(user.schoolGraduatedFrom || '');
@@ -142,6 +146,8 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
 
       email: email.trim(),
       phone: phone.trim(),
+      nextOfKinName: nextOfKinName.trim() || undefined,
+      nextOfKinPhone: nextOfKinPhone.trim() || undefined,
       stateOfOrigin,
       courseOfStudy: courseOfStudy.trim(),
       schoolGraduatedFrom: schoolGraduatedFrom.trim(),
@@ -365,6 +371,44 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
                     placeholder="08031234567"
                     className="w-full min-h-[40px] py-2 px-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-black/50 text-zinc-900 dark:text-white font-medium"
                   />
+                </div>
+              </div>
+
+              {/* Emergency Information / Next of Kin */}
+              <div className="pt-3 border-t border-slate-900/10 dark:border-white/10 space-y-3">
+                <div className="flex items-center space-x-2">
+                  <HeartPulse className="w-4 h-4 text-rose-500" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                    Emergency Information (Next of Kin)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-zinc-800 dark:text-zinc-300 font-semibold mb-1">
+                      Name of Next of Kin
+                    </label>
+                    <input
+                      type="text"
+                      value={nextOfKinName}
+                      onChange={(e) => setNextOfKinName(e.target.value)}
+                      placeholder="e.g. Mr. John Doe (Father)"
+                      className="w-full min-h-[40px] py-2 px-3 rounded-xl border border-rose-500/20 dark:border-rose-500/30 bg-rose-500/5 dark:bg-rose-950/20 text-zinc-900 dark:text-white font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-800 dark:text-zinc-300 font-semibold mb-1">
+                      Contact of Next of Kin
+                    </label>
+                    <input
+                      type="tel"
+                      value={nextOfKinPhone}
+                      onChange={(e) => setNextOfKinPhone(e.target.value)}
+                      placeholder="e.g. 08031234567"
+                      className="w-full min-h-[40px] py-2 px-3 rounded-xl border border-rose-500/20 dark:border-rose-500/30 bg-rose-500/5 dark:bg-rose-950/20 text-zinc-900 dark:text-white font-medium"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

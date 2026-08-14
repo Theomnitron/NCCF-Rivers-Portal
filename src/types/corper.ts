@@ -118,6 +118,8 @@ export interface CorperProfile {
   serviceUnits: string[];
   serviceUnit?: string;
   presence: PresenceStatus;
+  nextOfKinName?: string;
+  nextOfKinPhone?: string;
 
   // Derived UI & System Metadata
   displayName: string;
@@ -153,6 +155,8 @@ export interface Corper {
   room_name?: RoomName | string | null;
   service_units: ServiceUnit[] | string[];
   presence: PresenceStatus;
+  next_of_kin_name?: string | null;
+  next_of_kin_phone?: string | null;
   created_at?: string;
   updated_at?: string;
 

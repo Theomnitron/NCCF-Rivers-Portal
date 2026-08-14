@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   ShieldAlert,
   Trash2,
+  HeartPulse,
+  PhoneCall,
 } from 'lucide-react';
 
 interface CorperFullProfileModalProps {
@@ -322,6 +324,40 @@ export const CorperFullProfileModal: React.FC<CorperFullProfileModalProps> = ({
               <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${duesBadgeClass}`}>
                 {currentMonthDuesStatus}
               </span>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 4: EMERGENCY INFORMATION */}
+        <div className="bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/20 dark:border-rose-500/30 rounded-xl p-4 space-y-3">
+          <div className="flex items-center space-x-2 border-b border-rose-500/10 dark:border-rose-500/20 pb-2">
+            <HeartPulse className="w-4 h-4 text-rose-500" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">
+              EMERGENCY INFORMATION
+            </h3>
+            <span className="text-[10px] text-zinc-400 font-medium ml-auto">Emergency Purposes Only</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <span className="block text-[10px] uppercase text-zinc-500 font-sans font-medium">Name of Next of Kin</span>
+              <span className="font-bold text-zinc-900 dark:text-white">{user.nextOfKinName || 'N/A'}</span>
+            </div>
+            <div>
+              <span className="block text-[10px] uppercase text-zinc-500 font-sans font-medium">Contact of Next of Kin</span>
+              <div className="font-bold text-zinc-900 dark:text-white">
+                {user.nextOfKinPhone ? (
+                  <a
+                    href={`tel:${user.nextOfKinPhone}`}
+                    className="text-rose-600 dark:text-rose-400 hover:underline inline-flex items-center space-x-1.5 font-mono"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5 text-rose-500" />
+                    <span>{user.nextOfKinPhone}</span>
+                  </a>
+                ) : (
+                  <span className="text-zinc-500 font-normal">N/A</span>
+                )}
+              </div>
             </div>
           </div>
         </div>

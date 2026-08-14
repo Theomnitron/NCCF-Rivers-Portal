@@ -25,6 +25,8 @@ const rawSeedUsers: Omit<CorperProfile, 'tier' | 'targets' | 'displayName'>[] = 
     serviceUnits: ['Publicity', 'Media & Technical'],
     serviceUnit: 'Publicity, Media & Technical',
     presence: 'Present',
+    nextOfKinName: 'Pastor David Okonkwo (Father)',
+    nextOfKinPhone: '08023456789',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
   },
   {
@@ -49,6 +51,8 @@ const rawSeedUsers: Omit<CorperProfile, 'tier' | 'targets' | 'displayName'>[] = 
     serviceUnits: ['Sanitation/Maintenance'],
     serviceUnit: 'Sanitation/Maintenance',
     presence: 'Present',
+    nextOfKinName: 'Mrs. Victoria Bassey (Mother)',
+    nextOfKinPhone: '08134567890',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
   },
   {
@@ -73,6 +77,8 @@ const rawSeedUsers: Omit<CorperProfile, 'tier' | 'targets' | 'displayName'>[] = 
     serviceUnits: ['Publicity'],
     serviceUnit: 'Publicity',
     presence: 'Present',
+    nextOfKinName: 'Elder Udoh Akpan (Father)',
+    nextOfKinPhone: '08039988776',
     avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=250',
   },
   {
@@ -98,6 +104,8 @@ const rawSeedUsers: Omit<CorperProfile, 'tier' | 'targets' | 'displayName'>[] = 
     serviceUnits: ['Publicity', 'Drama'],
     serviceUnit: 'Publicity, Drama',
     presence: 'Present',
+    nextOfKinName: 'Dr. (Mrs) Nkechi Nwosu (Mother)',
+    nextOfKinPhone: '08051239876',
     avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=250',
   },
   {
@@ -122,6 +130,8 @@ const rawSeedUsers: Omit<CorperProfile, 'tier' | 'targets' | 'displayName'>[] = 
     serviceUnits: ['Organising & Protocol', 'Bible Study'],
     serviceUnit: 'Organising & Protocol, Bible Study',
     presence: 'Travelled',
+    nextOfKinName: 'Ibrahim Danladi (Brother)',
+    nextOfKinPhone: '08076543210',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
   },
   {
@@ -146,6 +156,8 @@ const rawSeedUsers: Omit<CorperProfile, 'tier' | 'targets' | 'displayName'>[] = 
     serviceUnits: ['Bible Study'],
     serviceUnit: 'Bible Study',
     presence: 'Present',
+    nextOfKinName: 'Engr. Emeka Okafor (Father)',
+    nextOfKinPhone: '08129876543',
     avatarUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=250',
   },
   {
@@ -170,6 +182,8 @@ const rawSeedUsers: Omit<CorperProfile, 'tier' | 'targets' | 'displayName'>[] = 
     serviceUnits: ['Welfare', 'Music'],
     serviceUnit: 'Welfare, Music',
     presence: 'Present',
+    nextOfKinName: 'Chief Oladipo Adeleke (Father)',
+    nextOfKinPhone: '08137788990',
     avatarUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=250',
   },
 ];

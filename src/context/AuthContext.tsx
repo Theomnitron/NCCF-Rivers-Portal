@@ -96,6 +96,8 @@ export function mapDbRowToCorperProfile(row: any): CorperProfile {
     serviceUnit: serviceUnitStr,
     serviceUnits: serviceUnitsList,
     presence: row.presence || 'Present',
+    nextOfKinName: row.next_of_kin_name || row.nextOfKinName || undefined,
+    nextOfKinPhone: row.next_of_kin_phone || row.nextOfKinPhone || undefined,
     tier: rawTier,
     targets: { maintenance: 15000, feeding: 10000 },
     avatarUrl:
@@ -132,6 +134,8 @@ export function mapCorperProfileToDbRow(profile: Partial<CorperProfile>): Record
   if (profile.stateCode !== undefined) row.state_code = profile.stateCode.trim().toUpperCase();
   if (profile.email !== undefined) row.email = profile.email.trim().toLowerCase();
   if (profile.phone !== undefined) row.phone_number = profile.phone?.trim() || null;
+  if (profile.nextOfKinName !== undefined) row.next_of_kin_name = profile.nextOfKinName?.trim() || null;
+  if (profile.nextOfKinPhone !== undefined) row.next_of_kin_phone = profile.nextOfKinPhone?.trim() || null;
   if (profile.gender !== undefined) row.gender = profile.gender;
   if (profile.avatarUrl !== undefined) row.avatar_url = profile.avatarUrl?.trim() || null;
 
@@ -564,6 +568,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         serviceUnit: 'General',
         serviceUnits: ['General'],
         presence: 'Present',
+        nextOfKinName: undefined,
+        nextOfKinPhone: undefined,
         tier: 7,
         targets: { maintenance: 15000, feeding: 10000 },
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
@@ -708,6 +714,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       systemCategory,
       systemAccessCategory: systemCategory,
       presence: newCorper.presence || 'Present',
+      nextOfKinName: newCorper.nextOfKinName?.trim() || undefined,
+      nextOfKinPhone: newCorper.nextOfKinPhone?.trim() || undefined,
       privileges,
       hasTripartitePrivileges: isTripartite,
       isExempted,
