@@ -43,14 +43,14 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const availableRoomsList = [
-    '1G (Female)',
-    '1G (Male)',
-    '2G (Female)',
-    '2G (Male)',
     'David',
     'Delegates (Female)',
     'Delegates (Male)',
     'Esther',
+    'Excos (Female)',
+    'Excos (Male)',
+    'Gees (Female)',
+    'Gees (Male)',
     'Hephzibah',
     'Joseph',
     'Judah',

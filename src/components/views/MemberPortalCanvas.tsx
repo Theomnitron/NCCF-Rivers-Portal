@@ -254,7 +254,7 @@ export const MemberPortalCanvas: React.FC<{ currentTab?: string }> = ({ currentT
             <div className="border-b border-slate-900/10 dark:border-white/10 pb-3 mb-3.5 flex flex-col xs:flex-row xs:items-center justify-between gap-2 items-start">
               <h3 className="text-base sm:text-lg font-bold leading-tight text-zinc-900 dark:text-white flex items-center space-x-2">
                 <Home className="w-5 h-5 text-zinc-800 dark:text-zinc-200 flex-shrink-0" />
-                <span>House Info & Others</span>
+                <span>House & Others Info</span>
               </h3>
             </div>
 
@@ -269,19 +269,10 @@ export const MemberPortalCanvas: React.FC<{ currentTab?: string }> = ({ currentT
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">{activeUser.roomName} Room</span>
               </div>
 
-              {activeUser.houseStatus === 'Executive' && activeUser.systemCategory === 'member' ? (
-                <div className="flex flex-col xs:flex-row xs:items-center justify-between py-1.5 border-b border-slate-900/10 dark:border-white/10 gap-1">
-                  <span className="text-zinc-600 dark:text-zinc-400 font-medium">Service Unit</span>
-                  <span className="inline-flex w-fit items-center px-2.5 py-0.5 rounded-lg text-xs font-bold tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 backdrop-blur-sm uppercase">
-                    EXECUTIVE
-                  </span>
-                </div>
-              ) : shouldDisplayUnit(activeUser) && (
-                <div className="flex flex-col xs:flex-row xs:items-center justify-between py-1.5 border-b border-slate-900/10 dark:border-white/10 gap-1">
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between py-1.5 border-b border-slate-900/10 dark:border-white/10 gap-1">
                   <span className="text-zinc-600 dark:text-zinc-400 font-medium">Service Unit</span>
                   <span className="font-bold text-zinc-900 dark:text-zinc-100">{formatServiceUnitText(activeUser)}</span>
                 </div>
-              )}
 
               <div className="flex flex-col xs:flex-row xs:items-center justify-between py-1.5 border-b border-slate-900/10 dark:border-white/10 gap-1">
                 <span className="text-zinc-600 dark:text-zinc-400 font-medium">Phone Number</span>

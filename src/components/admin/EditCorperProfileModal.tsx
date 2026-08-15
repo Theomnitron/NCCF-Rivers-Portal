@@ -28,9 +28,10 @@ const NIGERIAN_STATES = [
 ];
 
 const ROOM_NAMES =[
-  '1G (Female)', '1G (Male)', '2G (Female)', '2G (Male)', 'David', 'Delegates (Female)',
-  'Delegates (Male)', 'Esther', 'Hephzibah', 'Joseph', 'Judah', 'Lydia', 'Mary', 'Papa\'s',
-  'Peace', 'Ruth',  'Shekinah','Tehilah','Timothy', 'Uncle\'s',
+  'David', 'Delegates (Female)', 'Delegates (Male)', 'Esther', 'Excos (Female)',
+  'Excos (Male)', 'Gees (Female)', 'Gees (Male)', 'Hephzibah',
+  'Joseph', 'Judah', 'Lydia', 'Mary', 'Papa\'s', 'Peace', 'Ruth',
+  'Shekinah','Tehilah','Timothy', 'Uncle\'s',
 ]
 
 const EXECUTIVE_POST = [
