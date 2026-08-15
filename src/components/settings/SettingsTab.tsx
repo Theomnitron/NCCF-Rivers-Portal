@@ -25,14 +25,14 @@ import {
 } from 'lucide-react';
 
 const ROOM_OPTIONS = [
-  '1G (Female)',
-  '1G (Male)',
-  '2G (Female)',
-  '2G (Male)',
   'David',
   'Delegates (Female)',
   'Delegates (Male)',
   'Esther',
+  'Excos (Female)',
+  'Excos (Male)',
+  'Gees (Female)',
+  'Gees (Male)',
   'Hephzibah',
   'Joseph',
   'Judah',

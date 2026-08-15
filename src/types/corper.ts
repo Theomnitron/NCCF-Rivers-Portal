@@ -73,6 +73,18 @@ export type ServiceUnit =
   | 'TOS'
   | 'Ushering';
 
+export const ALL_SERVICE_UNITS: ServiceUnit[] = [
+  'Bible Study',
+  'Choir',
+  'Drama',
+  'Evangelism',
+  'Prayer',
+  'Publicity',
+  'TOS',
+  'Ushering',
+  'Welfare',
+];
+
 export interface TargetFees {
   maintenance: number;
   feeding: number;
