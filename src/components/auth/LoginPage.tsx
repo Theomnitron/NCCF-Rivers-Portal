@@ -150,16 +150,16 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="dark min-h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col lg:flex-row overflow-hidden font-sans relative selection:bg-blue-600 selection:text-white transition-colors duration-200">
+    <div className="dark min-h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col lg:flex-row overflow-x-hidden overflow-y-auto lg:overflow-hidden font-sans relative selection:bg-blue-600 selection:text-white transition-colors duration-200">
 
       {/* 1. ATMOSPHERIC BACKDROP IMAGE WITH SLIGHT ELEGANT BLUR */}
       <div
-        className="absolute -inset-8 bg-cover bg-center filter blur-[10px] scale-110 pointer-events-none opacity-90 transition-all duration-500"
+        className="fixed inset-0 -inset-8 bg-cover bg-center filter blur-[10px] scale-110 pointer-events-none opacity-90 transition-all duration-500"
         style={{ backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2000&q=80')` }}
       />
 
       {/* 2. SUBTLE TRANSLUCENT TINT FOR CRISP TEXT LEGIBILITY (NOT CLOUDED) */}
-      <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+      <div className="fixed inset-0 bg-black/60 pointer-events-none" />
 
       {/* LEFT PANEL (Desktop 60% Width Split-Screen) */}
       <div className="hidden lg:flex lg:w-[60%] flex-col justify-between p-12 lg:p-16 bg-zinc-900/20 relative overflow-hidden border-r border-white/10 backdrop-blur-xl">
@@ -242,17 +242,17 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL (Desktop 40% Width / Mobile Main Container) */}
-      <div className="flex-1 lg:w-[40%] flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-[100dvh] lg:min-h-0 z-10 py-6 lg:py-12">
+      <div className="flex-1 lg:w-[40%] flex flex-col items-center justify-start lg:justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-[100dvh] lg:min-h-0 z-10 py-6 sm:py-8 lg:py-12 overscroll-contain w-full">
 
         {/* Mobile Header (< lg) */}
-        <div className="lg:hidden flex flex-col items-center text-center mb-4 z-10">
+        <div className="lg:hidden flex flex-col items-center text-center mb-4 z-10 shrink-0 pt-2">
           <div className="relative flex items-center justify-center p-2 mb-2">
             {/* <div className="absolute inset-0 rounded-full bg-blue-500/30 animate-ping pointer-events-none" /> */}
             <div className="absolute -inset-2 border border-blue-500/30 rounded-full animate-ping pointer-events-none" />
-            <NccfLogo className="w-16 h-16 animate-pulse relative z-10" />
+            <NccfLogo className="w-14 h-14 sm:w-16 sm:h-16 animate-pulse relative z-10" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">NCCF RIVERS STATE</h1>
-          <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mt-1">Family House Portal</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">NCCF RIVERS STATE</h1>
+          <p className="text-[11px] sm:text-xs font-bold text-blue-400 uppercase tracking-widest mt-0.5">Family House Portal</p>
         </div>
 
         {/* Main Sleek Transparent Glassmorphic Auth Form Card */}
@@ -260,14 +260,14 @@ export const LoginPage: React.FC = () => {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="w-full max-w-md backdrop-blur-2xl bg-zinc-900/40 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-6 sm:p-8 rounded-3xl relative z-10"
+          className="w-full max-w-md my-auto backdrop-blur-2xl bg-zinc-900/50 sm:bg-zinc-900/40 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-5 sm:p-8 rounded-3xl relative z-10 shrink-0 mb-8 sm:mb-0"
         >
           {/* Segmented Toggle Control */}
           <div className="grid grid-cols-2 p-1.5 bg-zinc-950/50 rounded-2xl border border-white/10 mb-6 relative">
             <button
               type="button"
               onClick={() => handleModeSwitch('signin')}
-              className={`py-2.5 text-xs rounded-xl transition-all duration-200 z-10 cursor-pointer ${authMode === 'signin'
+              className={`py-2.5 text-xs rounded-xl min-h-[42px] transition-all duration-200 z-10 cursor-pointer flex items-center justify-center ${authMode === 'signin'
                   ? 'bg-blue-600 text-white shadow-md font-bold'
                   : 'text-slate-400 hover:text-white font-medium'
                 }`}
@@ -277,7 +277,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => handleModeSwitch('claim')}
-              className={`py-2.5 text-xs rounded-xl transition-all duration-200 z-10 cursor-pointer ${authMode === 'claim'
+              className={`py-2.5 text-xs rounded-xl min-h-[42px] transition-all duration-200 z-10 cursor-pointer flex items-center justify-center ${authMode === 'claim'
                   ? 'bg-blue-600 text-white shadow-md font-bold'
                   : 'text-slate-400 hover:text-white font-medium'
                 }`}
@@ -330,7 +330,7 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={handleSignIn} className="space-y-4">
               {/* Email Input */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   Email Address
                 </label>
                 <div className="relative">
@@ -341,7 +341,7 @@ export const LoginPage: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g., acpapa.michael@nccf-rivers.org"
                     required
-                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 min-h-[44px] text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
                   />
                 </div>
               </div>
@@ -349,7 +349,7 @@ export const LoginPage: React.FC = () => {
               {/* Password Input */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                  <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300">
                     Password
                   </label>
                   <button
@@ -358,7 +358,7 @@ export const LoginPage: React.FC = () => {
                       setResetEmail(email);
                       setShowForgotModal(true);
                     }}
-                    className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                    className="text-[11px] sm:text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer py-1"
                   >
                     Forgot Password?
                   </button>
@@ -371,12 +371,12 @@ export const LoginPage: React.FC = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 min-h-[44px] text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -387,7 +387,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-2 cursor-pointer"
+                className="w-full py-3.5 px-4 min-h-[48px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-3 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -407,7 +407,7 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={handleClaimAccount} className="space-y-4">
               {/* Email Input */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   Email Address
                 </label>
                 <div className="relative">
@@ -418,14 +418,14 @@ export const LoginPage: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g., acpapa.michael@nccf-rivers.org"
                     required
-                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 min-h-[44px] text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
                   />
                 </div>
               </div>
 
               {/* State Code Input */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   NYSC State Code
                 </label>
                 <div className="relative">
@@ -436,7 +436,7 @@ export const LoginPage: React.FC = () => {
                     onChange={(e) => setStateCode(e.target.value.toUpperCase())}
                     placeholder="e.g., RV/26B/1590"
                     required
-                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white uppercase placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-mono tracking-wider font-semibold"
+                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-4 py-3 min-h-[44px] text-sm sm:text-xs text-white uppercase placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-mono tracking-wider font-semibold"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400 mt-1">Must match your State Code in the Corper Roster.</p>
@@ -444,7 +444,7 @@ export const LoginPage: React.FC = () => {
 
               {/* Password Input */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   New Password
                 </label>
                 <div className="relative">
@@ -456,12 +456,12 @@ export const LoginPage: React.FC = () => {
                     placeholder="At least 6 characters"
                     required
                     minLength={6}
-                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                    className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 min-h-[44px] text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -472,7 +472,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-2 cursor-pointer"
+                className="w-full py-3.5 px-4 min-h-[48px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-3 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -495,12 +495,12 @@ export const LoginPage: React.FC = () => {
       {/* FORGOT PASSWORD MODAL */}
       <AnimatePresence>
         {showForgotModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm bg-zinc-900/90 border border-zinc-800 rounded-3xl p-6 shadow-2xl backdrop-blur-2xl relative text-slate-100"
+              className="w-full max-w-sm bg-zinc-900/95 border border-zinc-800 rounded-3xl p-6 shadow-2xl backdrop-blur-2xl relative text-slate-100 my-auto shrink-0"
             >
               <button
                 onClick={() => {
@@ -549,14 +549,14 @@ export const LoginPage: React.FC = () => {
                     onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="e.g., acpapa.michael@nccf-rivers.org"
                     required
-                    className="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 font-medium"
+                    className="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 min-h-[44px] text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 font-medium"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={resetSubmitting}
-                  className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                  className="w-full py-3 px-4 min-h-[44px] rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer shadow-md"
                 >
                   {resetSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -564,20 +564,6 @@ export const LoginPage: React.FC = () => {
                     <span>Send Reset Email</span>
                   )}
                 </button>
-
-                {/* Dev & Testing Helper */}
-                {/* <div className="pt-2 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForgotModal(false);
-                      window.location.search = '?mode=resetPassword';
-                    }}
-                    className="text-[11px] font-semibold text-blue-400 hover:underline cursor-pointer"
-                  >
-                    Preview Reset Password Form
-                  </button>
-                </div> */}
               </form>
             </motion.div>
           </div>

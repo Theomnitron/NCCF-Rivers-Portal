@@ -76,21 +76,21 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
   };
 
   return (
-    <div className="dark min-h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-y-auto font-sans select-none">
+    <div className="dark min-h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 relative overflow-x-hidden overflow-y-auto font-sans select-none py-8 sm:py-12 overscroll-contain">
       {/* Background Decor */}
       <div
-        className="absolute -inset-8 bg-cover bg-center filter blur-[12px] scale-110 pointer-events-none opacity-80"
+        className="fixed inset-0 -inset-8 bg-cover bg-center filter blur-[12px] scale-110 pointer-events-none opacity-80"
         style={{
           backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2000&q=80')`,
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/80 to-slate-950 pointer-events-none" />
+      <div className="fixed inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/80 to-slate-950 pointer-events-none" />
 
       {/* Main Container */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 w-full max-w-md bg-zinc-900/90 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-2xl text-slate-100"
+        className="relative z-10 w-full max-w-md my-auto bg-zinc-900/90 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-2xl text-slate-100 shrink-0 mb-6 sm:mb-0"
       >
         {/* Logo & Header */}
         <div className="flex flex-col items-center text-center mb-6">
@@ -126,7 +126,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* New Password */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
               New Password
             </label>
             <div className="relative">
@@ -138,12 +138,12 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
                 placeholder="At least 6 characters"
                 required
                 minLength={6}
-                className="w-full bg-zinc-950/60 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 font-medium"
+                className="w-full bg-zinc-950/60 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 min-h-[44px] text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 font-medium"
               />
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer p-1"
               >
                 {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -152,7 +152,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+            <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
               Confirm New Password
             </label>
             <div className="relative">
@@ -164,12 +164,12 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
                 placeholder="Re-enter new password"
                 required
                 minLength={6}
-                className="w-full bg-zinc-950/60 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 font-medium"
+                className="w-full bg-zinc-950/60 border border-zinc-800 rounded-2xl pl-10 pr-10 py-3 min-h-[44px] text-sm sm:text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 font-medium"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer p-1"
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -192,7 +192,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
           <button
             type="submit"
             disabled={!isValid || isSubmitting}
-            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-2 cursor-pointer"
+            className="w-full py-3.5 px-4 min-h-[48px] rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-600/25 transition-all transform active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-2 cursor-pointer"
           >
             {isSubmitting ? (
               <>
@@ -213,7 +213,7 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer py-1"
             >
               Back to Login
             </button>
