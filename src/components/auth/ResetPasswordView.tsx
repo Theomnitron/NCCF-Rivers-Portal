@@ -76,10 +76,10 @@ export const ResetPasswordView: React.FC<ResetPasswordViewProps> = ({
   };
 
   return (
-    <div className="dark min-h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 relative overflow-x-hidden overflow-y-auto font-sans select-none py-8 sm:py-12 overscroll-contain">
+    <div className="dark min-h-[100dvh] w-full max-w-full bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 relative font-sans select-none py-8 sm:py-12">
       {/* Background Decor */}
       <div
-        className="fixed inset-0 -inset-8 bg-cover bg-center filter blur-[12px] scale-110 pointer-events-none opacity-80"
+        className="fixed inset-0 bg-cover bg-center filter blur-[12px] scale-110 pointer-events-none opacity-80"
         style={{
           backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2000&q=80')`,
         }}

@@ -4,6 +4,7 @@ import { useRequests } from '../../context/RequestsContext';
 import { useToast } from '../../context/ToastContext';
 import { PaymentType } from '../../types/ledger';
 import { processClientSideFile, ProcessedFileResult } from '../../utils/fileProcessor';
+import { getDuesAccountDetails } from '../../config/appConfig';
 import {
   Upload,
   FileText,
@@ -14,6 +15,8 @@ import {
   Coins,
   DollarSign,
   AlertCircle,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 // const MONTH_OPTIONS = [
@@ -67,11 +70,15 @@ export const DuesReceiptSection: React.FC = () => {
   const fullTarget = maintTarget + feedTarget;
   const defaultAmount = subType === 'maintenance' && !isGee ? maintTarget : fullTarget;
 
-  // Account details for display
-  const accountDetails = {
-    accountName: 'Richard Emmanuel Okon',
-    accountNumber: '8060397045',
-    bankName: 'OPAY',
+  // Dynamic account details based on user's house status (Executive vs Standard)
+  const isExecutive = activeUser?.houseStatus?.toLowerCase() === 'executive';
+  const accountDetails = getDuesAccountDetails(activeUser?.houseStatus);
+  const [copiedAccount, setCopiedAccount] = useState(false);
+
+  const handleCopyAccount = () => {
+    navigator.clipboard.writeText(accountDetails.accountNumber);
+    setCopiedAccount(true);
+    setTimeout(() => setCopiedAccount(false), 2000);
   };
 
   const [rawAmountText, setRawAmountText] = useState<string>(defaultAmount.toString());
@@ -184,9 +191,21 @@ export const DuesReceiptSection: React.FC = () => {
             Make payments for house dues to the account below and submit your payment receipt(s) in the drop box.
           </p>
         </div>
-        <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold tracking-wider rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800">
-          {accountDetails.accountNumber} • {accountDetails.bankName} • {accountDetails.accountName}
-        </span>
+        <button
+          type="button"
+          onClick={handleCopyAccount}
+          title="Click to copy account number"
+          className="px-2.5 py-1 text-[11px] font-mono font-bold tracking-wider rounded-full bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border border-emerald-500/20 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800 dark:hover:bg-emerald-900/80 transition-all flex items-center space-x-1.5 cursor-pointer"
+        >
+          {copiedAccount ? (
+            <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+          ) : (
+            <Copy className="w-3 h-3 text-emerald-500/70 hover:text-emerald-500 shrink-0" />
+          )}
+          <span>
+            {accountDetails.accountNumber} • {accountDetails.bankName} • {accountDetails.accountName}
+          </span>
+        </button>
       </div>
 
       {successMessage && (
@@ -218,7 +237,7 @@ export const DuesReceiptSection: React.FC = () => {
           <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
           <h4 className="text-base font-bold text-emerald-100">Exempted from Dues Assessment</h4>
           <p className="text-xs sm:text-sm text-emerald-300/90 max-w-md mx-auto leading-relaxed">
-            Corpers with house status <strong>Delegate</strong> or Governing roles (Admin / Tripartite) are exempt from monthly state house dues. Submission of dues clearance receipts is disabled for your account.
+            You are exempted from monthly state house dues. Submission of dues clearance receipts is disabled for your account.
           </p>
         </div>
       ) : (

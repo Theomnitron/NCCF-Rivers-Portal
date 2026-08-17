@@ -150,11 +150,11 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="dark min-h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col lg:flex-row overflow-x-hidden overflow-y-auto lg:overflow-hidden font-sans relative selection:bg-blue-600 selection:text-white transition-colors duration-200">
+    <div className="dark min-h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col lg:flex-row font-sans relative selection:bg-blue-600 selection:text-white transition-colors duration-200">
 
       {/* 1. ATMOSPHERIC BACKDROP IMAGE WITH SLIGHT ELEGANT BLUR */}
       <div
-        className="fixed inset-0 -inset-8 bg-cover bg-center filter blur-[10px] scale-110 pointer-events-none opacity-90 transition-all duration-500"
+        className="fixed inset-0 bg-cover bg-center filter blur-[10px] scale-110 pointer-events-none opacity-90 transition-all duration-500"
         style={{ backgroundImage: `url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2000&q=80')` }}
       />
 
@@ -242,26 +242,28 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* RIGHT PANEL (Desktop 40% Width / Mobile Main Container) */}
-      <div className="flex-1 lg:w-[40%] flex flex-col items-center justify-start lg:justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-[100dvh] lg:min-h-0 z-10 py-6 sm:py-8 lg:py-12 overscroll-contain w-full">
+      <div className="flex-1 lg:w-[40%] flex flex-col items-center justify-center p-4 sm:p-8 lg:p-12 relative z-10 py-6 sm:py-10 w-full min-h-[100dvh] lg:min-h-0 lg:overflow-y-auto">
 
-        {/* Mobile Header (< lg) */}
-        <div className="lg:hidden flex flex-col items-center text-center mb-4 z-10 shrink-0 pt-2">
-          <div className="relative flex items-center justify-center p-2 mb-2">
-            {/* <div className="absolute inset-0 rounded-full bg-blue-500/30 animate-ping pointer-events-none" /> */}
-            <div className="absolute -inset-2 border border-blue-500/30 rounded-full animate-ping pointer-events-none" />
-            <NccfLogo className="w-14 h-14 sm:w-16 sm:h-16 animate-pulse relative z-10" />
+        {/* UNIFIED CONTAINER FOR MOBILE LOGO + AUTH CARD */}
+        <div className="w-full max-w-md flex flex-col items-center gap-3.5 my-auto z-10">
+
+          {/* Mobile Header (< lg) */}
+          <div className="lg:hidden flex flex-col items-center text-center shrink-0">
+            <div className="relative flex items-center justify-center p-1.5 mb-1">
+              <div className="absolute -inset-2 border border-blue-500/30 rounded-full animate-ping pointer-events-none" />
+              <NccfLogo className="w-13 h-13 sm:w-16 sm:h-16 animate-pulse relative z-10" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">NCCF RIVERS STATE</h1>
+            <p className="text-[11px] sm:text-xs font-bold text-blue-400 uppercase tracking-widest mt-0.5">Family House Portal</p>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">NCCF RIVERS STATE</h1>
-          <p className="text-[11px] sm:text-xs font-bold text-blue-400 uppercase tracking-widest mt-0.5">Family House Portal</p>
-        </div>
 
-        {/* Main Sleek Transparent Glassmorphic Auth Form Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="w-full max-w-md my-auto backdrop-blur-2xl bg-zinc-900/50 sm:bg-zinc-900/40 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-5 sm:p-8 rounded-3xl relative z-10 shrink-0 mb-8 sm:mb-0"
-        >
+          {/* Main Sleek Transparent Glassmorphic Auth Form Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="w-full backdrop-blur-2xl bg-zinc-900/60 sm:bg-zinc-900/40 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-5 sm:p-8 rounded-3xl relative z-10"
+          >
           {/* Segmented Toggle Control */}
           <div className="grid grid-cols-2 p-1.5 bg-zinc-950/50 rounded-2xl border border-white/10 mb-6 relative">
             <button
@@ -489,7 +491,8 @@ export const LoginPage: React.FC = () => {
             </form>
           )}
 
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
 
       {/* FORGOT PASSWORD MODAL */}

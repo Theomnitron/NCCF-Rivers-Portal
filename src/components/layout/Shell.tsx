@@ -44,12 +44,6 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
       icon: LayoutDashboard,
       description: activeUser.systemCategory === 'member' ? 'Member Portal' : 'Command Center',
     },
-    {
-      id: 'announcements',
-      label: 'Notices',
-      icon: Megaphone,
-      description: 'House Announcements & Events',
-    },
     ...(isApprovalsRole
       ? [
         {
@@ -67,6 +61,12 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab 
           description: 'Dues Proofs & Travel Permits',
         },
       ]),
+    {
+      id: 'announcements',
+      label: 'Notices',
+      icon: Megaphone,
+      description: 'House Announcements & Events',
+    },
     {
       id: 'settings',
       label: 'Settings',

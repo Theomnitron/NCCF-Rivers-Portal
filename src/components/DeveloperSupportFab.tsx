@@ -9,14 +9,15 @@ import {
   ExternalLink,
   Headphones,
 } from 'lucide-react';
+import { APP_CONFIG } from '../config/appConfig';
 
 export const DeveloperSupportFab: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const devPhoneFormatted = '+234 906 019 4677';
-  const devPhoneRaw = '2349060194677';
+  const devPhoneFormatted = APP_CONFIG.developerSupport.phoneFormatted;
+  const devPhoneRaw = APP_CONFIG.developerSupport.phoneRaw;
   const defaultWhatsAppMsg = encodeURIComponent(
     'Hello! I would love to make an enquiry about the NCCF Rivers State Portal:\n\n'
   );
