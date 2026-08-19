@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { DuesReceiptSection } from './DuesReceiptSection';
 import { TravelRequestSection } from './TravelRequestSection';
 import { RevealOnScroll } from '../common/RevealOnScroll';
-import { Coins, Plane, FileText } from 'lucide-react';
+import { Coins, Plane } from 'lucide-react';
 
 export const MemberRequestsView: React.FC = () => {
+  const { activeUser } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState<'dues' | 'travel'>('dues');
+
+  // Corps members with house status Gee do not require travel permits
+  const isGee = activeUser?.houseStatus === 'Gee';
+
+  if (isGee) {
+    return (
+      <div className="space-y-6">
+        <RevealOnScroll delay={0.05}>
+          <DuesReceiptSection />
+        </RevealOnScroll>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -55,3 +70,4 @@ export const MemberRequestsView: React.FC = () => {
     </div>
   );
 };
+

@@ -12,22 +12,22 @@ export interface DeveloperSupportConfig {
 export const APP_CONFIG = {
   // General Dues Account (Members, Room Governors, GEE)
   generalDuesAccount: {
-    accountNumber: import.meta.env.VITE_DUES_ACCOUNT_NUMBER || '8060397045',
-    bankName: import.meta.env.VITE_DUES_BANK_NAME || 'OPAY',
-    accountName: import.meta.env.VITE_DUES_ACCOUNT_NAME || 'Richard Emmanuel Okon',
+    accountNumber: import.meta.env.VITE_DUES_ACCOUNT_NUMBER,
+    bankName: import.meta.env.VITE_DUES_BANK_NAME,
+    accountName: import.meta.env.VITE_DUES_ACCOUNT_NAME,
   } as BankAccountConfig,
 
   // Executive Dues Account (Executive Status)
   executiveDuesAccount: {
-    accountNumber: import.meta.env.VITE_EXECUTIVE_DUES_ACCOUNT_NUMBER || '2239192970',
-    bankName: import.meta.env.VITE_EXECUTIVE_DUES_BANK_NAME || 'UBA',
-    accountName: import.meta.env.VITE_EXECUTIVE_DUES_ACCOUNT_NAME || 'Ugeh Anointing Oghenevwarhe',
+    accountNumber: import.meta.env.VITE_EXECUTIVE_DUES_ACCOUNT_NUMBER,
+    bankName: import.meta.env.VITE_EXECUTIVE_DUES_BANK_NAME,
+    accountName: import.meta.env.VITE_EXECUTIVE_DUES_ACCOUNT_NAM,
   } as BankAccountConfig,
 
   // Developer & Welfare Team Contact
   developerSupport: {
-    phoneFormatted: import.meta.env.VITE_DEV_SUPPORT_PHONE || '+234 906 019 4677',
-    phoneRaw: import.meta.env.VITE_DEV_SUPPORT_RAW_PHONE || '2349060194677',
+    phoneFormatted: import.meta.env.VITE_DEV_SUPPORT_PHONE,
+    phoneRaw: import.meta.env.VITE_DEV_SUPPORT_RAW_PHONE,
   } as DeveloperSupportConfig,
 };
 

@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAnnouncements, Announcement } from '../../context/AnnouncementsContext';
 import { useToast } from '../../context/ToastContext';
 import { hasTripartiteAccess } from '../../types/corper';
 import { processClientSideFile } from '../../utils/fileProcessor';
 import { uploadFileToStorage } from '../../utils/storage';
+import { formatEventSchedule, formatAnnouncementDisplayDate } from '../../utils/dateFormatter';
 import { RegularServicesModal } from './RegularServicesModal';
 import { RevealOnScroll } from '../common/RevealOnScroll';
 import {
@@ -50,7 +51,16 @@ export const AnnouncementsTab: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [venue, setVenue] = useState('');
-  const [eventDate, setEventDate] = useState('');
+  
+  // Event Date Schedule State
+  const [scheduleMode, setScheduleMode] = useState<'picker' | 'custom'>('picker');
+  const [dateRangeType, setDateRangeType] = useState<'single' | 'range'>('single');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [includeTime, setIncludeTime] = useState(false);
+  const [eventTime, setEventTime] = useState('');
+  const [customDateText, setCustomDateText] = useState('');
+
   const [expirationDate, setExpirationDate] = useState(() => {
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 14);
@@ -74,13 +84,28 @@ export const AnnouncementsTab: React.FC = () => {
   const expiredNotices = announcements.filter((a) => a.expirationDate < todayStr);
   const displayedNotices = showExpired ? announcements : activeNotices;
 
+  // Computed Live Formatted Event Date
+  const computedEventDate = useMemo(() => {
+    if (scheduleMode === 'custom') {
+      return customDateText.trim();
+    }
+    if (!startDate) return '';
+    return formatEventSchedule(dateRangeType, startDate, endDate, includeTime ? eventTime : undefined);
+  }, [scheduleMode, customDateText, startDate, endDate, dateRangeType, includeTime, eventTime]);
+
   // Open Drawer for Create
   const handleOpenCreate = () => {
     setEditingId(null);
     setTitle('');
     setDescription('');
     setVenue('');
-    setEventDate('');
+    setScheduleMode('picker');
+    setDateRangeType('single');
+    setStartDate('');
+    setEndDate('');
+    setIncludeTime(false);
+    setEventTime('');
+    setCustomDateText('');
     const d = new Date();
     d.setDate(d.getDate() + 14);
     setExpirationDate(d.toISOString().split('T')[0]);
@@ -96,7 +121,36 @@ export const AnnouncementsTab: React.FC = () => {
     setTitle(a.title);
     setDescription(a.description || '');
     setVenue(a.venue || '');
-    setEventDate(a.eventDate || '');
+    
+    // Parse existing eventDate
+    if (a.eventDate) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(a.eventDate)) {
+        setScheduleMode('picker');
+        setDateRangeType('single');
+        setStartDate(a.eventDate);
+        setEndDate('');
+        setIncludeTime(false);
+        setEventTime('');
+        setCustomDateText('');
+      } else {
+        // Formatted or custom string
+        setScheduleMode('custom');
+        setCustomDateText(a.eventDate);
+        setStartDate('');
+        setEndDate('');
+        setIncludeTime(false);
+        setEventTime('');
+      }
+    } else {
+      setScheduleMode('picker');
+      setDateRangeType('single');
+      setStartDate('');
+      setEndDate('');
+      setIncludeTime(false);
+      setEventTime('');
+      setCustomDateText('');
+    }
+
     setExpirationDate(a.expirationDate);
     setFlyerDataUrl(a.flyerUrl);
     setFlyerFileName(a.flyerFileName);
@@ -162,12 +216,14 @@ export const AnnouncementsTab: React.FC = () => {
       }
     }
 
+    const finalEventDate = computedEventDate || undefined;
+
     if (editingId) {
       updateAnnouncement(editingId, {
         title: title.trim(),
         description: description.trim() || undefined,
         venue: venue.trim() || undefined,
-        eventDate: eventDate.trim() || undefined,
+        eventDate: finalEventDate,
         expirationDate,
         flyerUrl: finalFlyerUrl,
         flyerFileName,
@@ -181,7 +237,7 @@ export const AnnouncementsTab: React.FC = () => {
         title: title.trim(),
         description: description.trim() || undefined,
         venue: venue.trim() || undefined,
-        eventDate: eventDate.trim() || undefined,
+        eventDate: finalEventDate,
         expirationDate,
         flyerUrl: finalFlyerUrl,
         flyerFileName,
@@ -550,33 +606,174 @@ export const AnnouncementsTab: React.FC = () => {
                 />
               </div>
 
-              {/* Event Date & Expiration Date */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
-                    Event Date / Range (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                    placeholder="e.g. August 16, 2026"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-900/10 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md text-xs text-zinc-900 dark:text-white font-medium focus:ring-2 focus:ring-amber-500"
-                  />
+              {/* Event Date & Schedule Builder */}
+              <div className="p-3.5 rounded-2xl border border-slate-900/10 dark:border-white/10 bg-slate-900/[0.02] dark:bg-white/[0.02] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1.5 text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Event Date / Schedule (Optional)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setScheduleMode((prev) => (prev === 'picker' ? 'custom' : 'picker'))}
+                    className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+                  >
+                    {scheduleMode === 'picker' ? 'Type custom text' : 'Use date picker'}
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
-                    Auto-Expiration Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={expirationDate}
-                    onChange={(e) => setExpirationDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-900/10 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md text-xs text-zinc-900 dark:text-white font-mono font-bold focus:ring-2 focus:ring-amber-500"
-                    required
-                  />
-                </div>
+                {scheduleMode === 'picker' ? (
+                  <div className="space-y-2.5">
+                    {/* Mode Toggle: Single Day vs Date Range */}
+                    <div className="flex items-center p-1 rounded-xl bg-slate-900/5 dark:bg-white/5 border border-slate-900/10 dark:border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDateRangeType('single');
+                          setEndDate('');
+                        }}
+                        className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          dateRangeType === 'single'
+                            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                            : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                        }`}
+                      >
+                        Single Day
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDateRangeType('range')}
+                        className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          dateRangeType === 'range'
+                            ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                            : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                        }`}
+                      >
+                        Date Range (Multi-Day)
+                      </button>
+                    </div>
+
+                    {/* Date Inputs */}
+                    {dateRangeType === 'single' ? (
+                      <div>
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-900/10 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md text-xs text-zinc-900 dark:text-white font-mono font-medium focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-zinc-600 dark:text-zinc-400 mb-1">
+                            Start Date
+                          </label>
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => {
+                              setStartDate(e.target.value);
+                              if (endDate && e.target.value > endDate) {
+                                setEndDate(e.target.value);
+                              }
+                            }}
+                            className="w-full px-3 py-2 rounded-xl border border-slate-900/10 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md text-xs text-zinc-900 dark:text-white font-mono font-medium focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-zinc-600 dark:text-zinc-400 mb-1">
+                            End Date
+                          </label>
+                          <input
+                            type="date"
+                            value={endDate}
+                            min={startDate || undefined}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-slate-900/10 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md text-xs text-zinc-900 dark:text-white font-mono font-medium focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Optional Time Selection */}
+                    <div className="flex items-center justify-between pt-1">
+                      <label className="flex items-center space-x-2 text-xs text-zinc-700 dark:text-zinc-300 font-medium cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={includeTime}
+                          onChange={(e) => setIncludeTime(e.target.checked)}
+                          className="rounded border-slate-900/20 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                        />
+                        <span>Include Event Time</span>
+                      </label>
+
+                      {includeTime && (
+                        <div className="flex items-center space-x-1.5">
+                          <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                          <input
+                            type="time"
+                            value={eventTime}
+                            onChange={(e) => setEventTime(e.target.value)}
+                            className="px-2.5 py-1 rounded-lg border border-slate-900/10 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 text-xs font-mono text-zinc-900 dark:text-white focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      value={customDateText}
+                      onChange={(e) => setCustomDateText(e.target.value)}
+                      placeholder="e.g. August 16 – August 18, 2026"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-900/10 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md text-xs text-zinc-900 dark:text-white font-medium focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                )}
+
+                {/* Formatted Date Live Preview */}
+                {computedEventDate ? (
+                  <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-300 font-medium">
+                    <div className="flex items-center space-x-2 truncate">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span className="truncate">
+                        Will appear as: <strong>{computedEventDate}</strong>
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStartDate('');
+                        setEndDate('');
+                        setEventTime('');
+                        setIncludeTime(false);
+                        setCustomDateText('');
+                      }}
+                      className="text-[11px] font-bold text-zinc-500 hover:text-rose-500 transition-colors ml-2 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Auto-Expiration Date */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-1">
+                  Auto-Expiration Date *
+                </label>
+                <input
+                  type="date"
+                  value={expirationDate}
+                  onChange={(e) => setExpirationDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-900/10 dark:border-white/10 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md text-xs text-zinc-900 dark:text-white font-mono font-bold focus:ring-2 focus:ring-amber-500"
+                  required
+                />
+                <p className="text-[10px] text-zinc-500 mt-1">
+                  Notice automatically disappears from the bulletin after this date.
+                </p>
               </div>
 
               <div className="pt-4 border-t border-slate-900/10 dark:border-white/10 flex items-center justify-end space-x-2">

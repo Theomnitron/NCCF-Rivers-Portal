@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { hasTripartiteAccess, CorperPrivileges } from '../types/corper';
+import { formatAnnouncementDisplayDate } from '../utils/dateFormatter';
 
 export interface Announcement {
   id: string; // e.g. "ANC-2026-001"
@@ -43,7 +44,7 @@ export function mapRowToAnnouncement(row: any): Announcement {
     description: row.description || undefined,
     flyerUrl: row.flyer_url || undefined,
     venue: row.venue || undefined,
-    eventDate: row.event_date ? new Date(row.event_date).toISOString().substring(0, 10) : undefined,
+    eventDate: formatAnnouncementDisplayDate(row.event_date) || undefined,
     expirationDate: row.expires_at ? new Date(row.expires_at).toISOString().substring(0, 10) : '2026-12-31',
     authorName: 'Tripartite Council',
     authorRole: 'Governance Officer',
@@ -169,11 +170,7 @@ export const AnnouncementsProvider: React.FC<{ children: React.ReactNode }> = ({
         };
 
         if (data.eventDate) {
-          try {
-            dbPayload.event_date = new Date(data.eventDate).toISOString();
-          } catch (e) {
-            dbPayload.event_date = null;
-          }
+          dbPayload.event_date = data.eventDate;
         }
 
         const authIdCandidate = data.authorId || data.createdBy;
@@ -202,11 +199,7 @@ export const AnnouncementsProvider: React.FC<{ children: React.ReactNode }> = ({
     if (data.flyerUrl !== undefined) dbRow.flyer_url = data.flyerUrl || null;
     if (data.venue !== undefined) dbRow.venue = data.venue || null;
     if (data.eventDate !== undefined) {
-      try {
-        dbRow.event_date = data.eventDate ? new Date(data.eventDate).toISOString() : null;
-      } catch (e) {
-        dbRow.event_date = null;
-      }
+      dbRow.event_date = data.eventDate || null;
     }
     if (data.expirationDate !== undefined) {
       try {
