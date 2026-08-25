@@ -428,18 +428,19 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
     setIsLoadingRequests(true);
     try {
-      const { data: approvalsData, error: approvalsError } = await supabase
-        .from('approval_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const [approvalsRes, ledgerRes] = await Promise.all([
+        supabase.from('approval_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('dues_ledgers').select('*').order('created_at', { ascending: false }),
+      ]);
 
-      if (approvalsError) {
-        // Fallback silently if table missing
-      } else if (approvalsData) {
-        const duesList: DuesReceiptSubmission[] = [];
-        const travelList: TravelRequestSubmission[] = [];
-        const profileList: ProfileChangeRequestSubmission[] = [];
+      const approvalsData = approvalsRes.data;
+      const ledgerData = ledgerRes.data;
 
+      const duesList: DuesReceiptSubmission[] = [];
+      const travelList: TravelRequestSubmission[] = [];
+      const profileList: ProfileChangeRequestSubmission[] = [];
+
+      if (approvalsData) {
         for (const row of approvalsData) {
           const reqType = row.request_type || row.request_category;
           if (reqType === 'dues_waiver' || reqType === 'dues_proof') {
@@ -450,11 +451,81 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             profileList.push(mapRowToProfileRequest(row));
           }
         }
-
-        setDuesSubmissions(duesList);
-        setTravelRequests(travelList);
-        setProfileRequests(profileList);
       }
+
+      // Reconcile and synchronize with dues_ledgers entries to guarantee persistent financial records across cache clears
+      if (ledgerData && ledgerData.length > 0) {
+        for (const lRow of ledgerData) {
+          const corperId = lRow.corper_id || lRow.user_id;
+          const targetMonth = lRow.target_month || lRow.month_key;
+          if (!corperId || !targetMonth) continue;
+
+          const isVerified = lRow.status === 'verified' || lRow.status === 'approved' || lRow.status === 'paid';
+          const isRejected = lRow.status === 'rejected' || lRow.status === 'declined';
+          const amount = Number(lRow.amount) || 0;
+
+          // Check if there is already a matching submission in duesList
+          const existingIdx = duesList.findIndex(
+            (d) =>
+              (lRow.request_id && d.id === lRow.request_id) ||
+              (d.userId === corperId && (d.monthKey === targetMonth || d.monthCode === targetMonth.split('-')[0]))
+          );
+
+          if (existingIdx >= 0) {
+            if (isVerified) {
+              duesList[existingIdx] = {
+                ...duesList[existingIdx],
+                status: 'approved',
+                approvedAmount: amount > 0 ? amount : duesList[existingIdx].approvedAmount || duesList[existingIdx].amountPaid,
+              };
+            } else if (isRejected) {
+              duesList[existingIdx] = {
+                ...duesList[existingIdx],
+                status: 'rejected',
+              };
+            }
+          } else if (isVerified && amount > 0) {
+            // Reconstruct verified record if approval_requests was emptied
+            const parts = targetMonth.split('-');
+            const mCode = parts[0] || 'AUG';
+            const yNum = parts[1] ? parseInt(parts[1]) : 2026;
+            const monthNames: Record<string, string> = {
+              JAN: 'January', FEB: 'February', MAR: 'March', APR: 'April', MAY: 'May', JUN: 'June',
+              JUL: 'July', AUG: 'August', SEP: 'September', OCT: 'October', NOV: 'November', DEC: 'December',
+            };
+            const mName = monthNames[mCode.toUpperCase()] || mCode;
+
+            const synthesizedSub: DuesReceiptSubmission = {
+              id: lRow.request_id || lRow.id || generateUUID(),
+              userId: corperId,
+              userName: lRow.corper_name || 'Corper Member',
+              userStateCode: 'RV/26A/0000',
+              userHouseStatus: 'Resident',
+              userRoom: 'N/A',
+              userTier: 1,
+              monthKey: targetMonth,
+              monthCode: mCode,
+              year: yNum,
+              monthName: mName,
+              subscriptionType: lRow.subscription_type || 'combined',
+              amountPaid: amount,
+              expectedAmount: amount,
+              approvedAmount: amount,
+              fileName: lRow.receipt_url || 'verified_ledger_receipt.pdf',
+              receiptUrl: lRow.receipt_url || undefined,
+              submittedAt: lRow.created_at || new Date().toISOString(),
+              status: 'approved',
+              reviewedBy: 'Admin Force Clear / Ledger',
+              reviewedAt: lRow.updated_at || lRow.created_at || new Date().toISOString(),
+            };
+            duesList.push(synthesizedSub);
+          }
+        }
+      }
+
+      setDuesSubmissions(duesList);
+      setTravelRequests(travelList);
+      setProfileRequests(profileList);
     } catch (err) {
       // Network exception fallback
     } finally {
@@ -480,7 +551,7 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       fetchInitialRequests();
     }, 60000);
 
-    // 3. Establish Realtime channel subscriptions for approval_requests
+    // 3. Establish Realtime channel subscriptions for approval_requests & dues_ledgers
     const channel = supabase
       .channel('realtime_requests_all')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'approval_requests' }, (payload) => {
@@ -503,6 +574,9 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setTravelRequests((prev) => prev.filter((t) => t.id !== deletedId));
           setProfileRequests((prev) => prev.filter((p) => p.id !== deletedId));
         }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dues_ledgers' }, () => {
+        fetchInitialRequests();
       })
       .subscribe();
 
@@ -1155,8 +1229,10 @@ const isValidUUID = (str?: string | null): boolean => {
     const targetAmount = maintTarget + feedTarget;
     const { monthKey: targetMonthKey, monthCode: targetMonthCode, monthName: activeMonthName, year: activeYear, activeMonthLabel } = getCurrentActiveLedgerMonth();
 
+    const overrideUuid = generateUUID();
+
     const overrideSub: DuesReceiptSubmission = {
-      id: `override-${Date.now()}`,
+      id: overrideUuid,
       userId,
       userName: user.displayName || `${user.firstName} ${user.lastName}`,
       userStateCode: user.stateCode,
@@ -1205,15 +1281,17 @@ const isValidUUID = (str?: string | null): boolean => {
     if (supabase) {
       try {
         await supabase.from('approval_requests').upsert({
-          id: overrideSub.id,
+          id: overrideUuid,
           corper_id: userId,
           request_category: 'dues_proof',
+          title: `Admin Override: Force Clear - ${activeMonthLabel}`,
           request_type: 'dues_waiver',
           status: 'approved',
           payload: overrideSub,
         });
         await supabase.from('dues_ledgers').upsert({
           corper_id: userId,
+          request_id: overrideUuid,
           title: `Admin Override: Force Clear - ${activeMonthLabel}`,
           amount: targetAmount,
           subscription_type: 'combined',
@@ -1288,6 +1366,7 @@ const isValidUUID = (str?: string | null): boolean => {
 
         await supabase.from('dues_ledgers').upsert({
           corper_id: userId,
+          request_id: generateUUID(),
           title: `Admin Override: Reset Standing - ${activeMonthLabel}`,
           amount: 0,
           subscription_type: 'combined',
