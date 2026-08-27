@@ -122,15 +122,23 @@ export const AnnouncementsTab: React.FC = () => {
     setDescription(a.description || '');
     setVenue(a.venue || '');
     
-    // Parse existing eventDate
-    if (a.eventDate) {
+    // Parse existing eventDate & eventEndDate
+    if (a.dateMode === 'range' || a.eventEndDate) {
+      setScheduleMode('picker');
+      setDateRangeType('range');
+      setStartDate(a.eventDate && /^\d{4}-\d{2}-\d{2}$/.test(a.eventDate) ? a.eventDate : (a.eventDate ? a.eventDate.substring(0, 10) : ''));
+      setEndDate(a.eventEndDate || '');
+      setIncludeTime(Boolean(a.timeRange));
+      setEventTime(a.timeRange || '');
+      setCustomDateText('');
+    } else if (a.eventDate) {
       if (/^\d{4}-\d{2}-\d{2}$/.test(a.eventDate)) {
         setScheduleMode('picker');
         setDateRangeType('single');
         setStartDate(a.eventDate);
         setEndDate('');
-        setIncludeTime(false);
-        setEventTime('');
+        setIncludeTime(Boolean(a.timeRange));
+        setEventTime(a.timeRange || '');
         setCustomDateText('');
       } else {
         // Formatted or custom string
@@ -217,13 +225,20 @@ export const AnnouncementsTab: React.FC = () => {
     }
 
     const finalEventDate = computedEventDate || undefined;
+    const finalStartDate = scheduleMode === 'picker' ? (startDate || undefined) : finalEventDate;
+    const finalEndDate = scheduleMode === 'picker' && dateRangeType === 'range' ? (endDate || undefined) : undefined;
+    const finalDateMode = scheduleMode === 'picker' ? dateRangeType : 'single';
+    const finalTimeRange = includeTime && eventTime ? eventTime : undefined;
 
     if (editingId) {
       updateAnnouncement(editingId, {
         title: title.trim(),
         description: description.trim() || undefined,
         venue: venue.trim() || undefined,
-        eventDate: finalEventDate,
+        eventDate: finalStartDate,
+        eventEndDate: finalEndDate,
+        dateMode: finalDateMode,
+        timeRange: finalTimeRange,
         expirationDate,
         flyerUrl: finalFlyerUrl,
         flyerFileName,
@@ -237,7 +252,10 @@ export const AnnouncementsTab: React.FC = () => {
         title: title.trim(),
         description: description.trim() || undefined,
         venue: venue.trim() || undefined,
-        eventDate: finalEventDate,
+        eventDate: finalStartDate,
+        eventEndDate: finalEndDate,
+        dateMode: finalDateMode,
+        timeRange: finalTimeRange,
         expirationDate,
         flyerUrl: finalFlyerUrl,
         flyerFileName,

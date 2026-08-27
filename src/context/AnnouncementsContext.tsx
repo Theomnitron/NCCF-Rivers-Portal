@@ -11,6 +11,9 @@ export interface Announcement {
   flyerFileName?: string;
   venue?: string;
   eventDate?: string;
+  eventEndDate?: string;
+  dateMode?: 'single' | 'range';
+  timeRange?: string;
   expirationDate: string; // YYYY-MM-DD
   authorName: string;
   authorRole: string;
@@ -37,14 +40,60 @@ const LOCAL_STORAGE_KEY_ANNOUNCEMENTS = 'nccf_rivers_announcements_v1';
 
 const isUUID = (str?: string) => Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
 
+/**
+ * Safely parse a date input (YYYY-MM-DD or ISO string) into an ISO string suitable for Supabase's timestamptz column.
+ * Returns null if the string is not a valid date.
+ */
+function safeIsoDate(val?: string | null): string | null {
+  if (!val) return null;
+  const trimmed = val.trim();
+  if (!trimmed) return null;
+
+  // Handle YYYY-MM-DD format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    try {
+      const parsed = new Date(`${trimmed}T00:00:00.000Z`);
+      if (!isNaN(parsed.getTime())) return parsed.toISOString();
+    } catch {
+      return null;
+    }
+  }
+
+  // Handle ISO or standard date formats
+  try {
+    const parsed = new Date(trimmed);
+    if (!isNaN(parsed.getTime())) return parsed.toISOString();
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export function mapRowToAnnouncement(row: any): Announcement {
+  // Check if we have structured date range or single date
+  let computedDisplayDate: string | undefined = undefined;
+
+  if (row.event_date) {
+    if (row.event_end_date && row.event_end_date !== row.event_date) {
+      const startStr = typeof row.event_date === 'string' ? row.event_date.substring(0, 10) : '';
+      const endStr = typeof row.event_end_date === 'string' ? row.event_end_date.substring(0, 10) : '';
+      computedDisplayDate = formatAnnouncementDisplayDate(startStr) + ' – ' + formatAnnouncementDisplayDate(endStr);
+    } else {
+      computedDisplayDate = formatAnnouncementDisplayDate(row.event_date) || undefined;
+    }
+  }
+
   return {
     id: row.id,
     title: row.title || 'Notice',
     description: row.description || undefined,
     flyerUrl: row.flyer_url || undefined,
     venue: row.venue || undefined,
-    eventDate: formatAnnouncementDisplayDate(row.event_date) || undefined,
+    eventDate: computedDisplayDate || (typeof row.event_date === 'string' && !row.event_date.includes('T') ? row.event_date : undefined),
+    eventEndDate: row.event_end_date ? String(row.event_end_date).substring(0, 10) : undefined,
+    dateMode: row.date_mode || (row.event_end_date ? 'range' : 'single'),
+    timeRange: row.time_range || undefined,
     expirationDate: row.expires_at ? new Date(row.expires_at).toISOString().substring(0, 10) : '2026-12-31',
     authorName: 'Tripartite Council',
     authorRole: 'Governance Officer',
@@ -165,12 +214,27 @@ export const AnnouncementsProvider: React.FC<{ children: React.ReactNode }> = ({
           description: data.description || null,
           flyer_url: data.flyerUrl || null,
           venue: data.venue || null,
-          expires_at: data.expirationDate ? new Date(data.expirationDate).toISOString() : new Date('2026-12-31').toISOString(),
+          expires_at: data.expirationDate ? (safeIsoDate(data.expirationDate) || new Date('2026-12-31').toISOString()) : new Date('2026-12-31').toISOString(),
           pin_to_top: data.pinToTop ?? false,
+          date_mode: data.dateMode || (data.eventEndDate ? 'range' : 'single'),
         };
 
         if (data.eventDate) {
-          dbPayload.event_date = data.eventDate;
+          const isoStart = safeIsoDate(data.eventDate);
+          if (isoStart) {
+            dbPayload.event_date = isoStart;
+          }
+        }
+
+        if (data.eventEndDate) {
+          const isoEnd = safeIsoDate(data.eventEndDate);
+          if (isoEnd) {
+            dbPayload.event_end_date = isoEnd;
+          }
+        }
+
+        if (data.timeRange) {
+          dbPayload.time_range = data.timeRange;
         }
 
         const authIdCandidate = data.authorId || data.createdBy;
@@ -199,14 +263,19 @@ export const AnnouncementsProvider: React.FC<{ children: React.ReactNode }> = ({
     if (data.flyerUrl !== undefined) dbRow.flyer_url = data.flyerUrl || null;
     if (data.venue !== undefined) dbRow.venue = data.venue || null;
     if (data.eventDate !== undefined) {
-      dbRow.event_date = data.eventDate || null;
+      dbRow.event_date = safeIsoDate(data.eventDate);
+    }
+    if (data.eventEndDate !== undefined) {
+      dbRow.event_end_date = safeIsoDate(data.eventEndDate);
+    }
+    if (data.dateMode !== undefined) {
+      dbRow.date_mode = data.dateMode;
+    }
+    if (data.timeRange !== undefined) {
+      dbRow.time_range = data.timeRange || null;
     }
     if (data.expirationDate !== undefined) {
-      try {
-        dbRow.expires_at = data.expirationDate ? new Date(data.expirationDate).toISOString() : new Date('2026-12-31').toISOString();
-      } catch (e) {
-        dbRow.expires_at = new Date('2026-12-31').toISOString();
-      }
+      dbRow.expires_at = safeIsoDate(data.expirationDate) || new Date('2026-12-31').toISOString();
     }
     if (data.pinToTop !== undefined) dbRow.pin_to_top = data.pinToTop;
     const authIdCandidate = data.authorId || data.createdBy;
