@@ -455,33 +455,45 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       // Reconcile and synchronize with dues_ledgers entries to guarantee persistent financial records across cache clears
       if (ledgerData && ledgerData.length > 0) {
+        // Track the newest processed record per corper + month to ensure latest action (e.g. Reset) takes precedence
+        const seenCorperMonths = new Set<string>();
+
         for (const lRow of ledgerData) {
           const corperId = lRow.corper_id || lRow.user_id;
-          const targetMonth = lRow.target_month || lRow.month_key;
+          const targetMonth = (lRow.target_month || lRow.month_key || '').toUpperCase();
           if (!corperId || !targetMonth) continue;
 
+          const key = `${corperId}_${targetMonth}`;
+          if (seenCorperMonths.has(key)) {
+            // Skip older records for this same month so they don't override the latest action
+            continue;
+          }
+          seenCorperMonths.add(key);
+
           const isVerified = lRow.status === 'verified' || lRow.status === 'approved' || lRow.status === 'paid';
-          const isRejected = lRow.status === 'rejected' || lRow.status === 'declined';
+          const isRejected = lRow.status === 'rejected' || lRow.status === 'declined' || lRow.status === 'unpaid';
           const amount = Number(lRow.amount) || 0;
 
           // Check if there is already a matching submission in duesList
           const existingIdx = duesList.findIndex(
             (d) =>
               (lRow.request_id && d.id === lRow.request_id) ||
-              (d.userId === corperId && (d.monthKey === targetMonth || d.monthCode === targetMonth.split('-')[0]))
+              (d.userId === corperId && (d.monthKey?.toUpperCase() === targetMonth || d.monthCode?.toUpperCase() === targetMonth.split('-')[0]))
           );
 
           if (existingIdx >= 0) {
-            if (isVerified) {
+            if (isVerified && amount > 0) {
               duesList[existingIdx] = {
                 ...duesList[existingIdx],
                 status: 'approved',
-                approvedAmount: amount > 0 ? amount : duesList[existingIdx].approvedAmount || duesList[existingIdx].amountPaid,
+                approvedAmount: amount,
+                subscriptionType: lRow.subscription_type || duesList[existingIdx].subscriptionType || 'combined',
               };
-            } else if (isRejected) {
+            } else if (isRejected || amount === 0) {
               duesList[existingIdx] = {
                 ...duesList[existingIdx],
                 status: 'rejected',
+                approvedAmount: 0,
               };
             }
           } else if (isVerified && amount > 0) {
@@ -1259,7 +1271,7 @@ const isValidUUID = (str?: string | null): boolean => {
     setDuesSubmissions((prev) => [
       overrideSub,
       ...prev.filter(
-        (s) => !(s.userId === userId && (s.monthKey === targetMonthKey || s.monthCode === targetMonthCode))
+        (s) => !(s.userId === userId && (s.monthKey?.toUpperCase() === targetMonthKey.toUpperCase() || s.monthCode?.toUpperCase() === targetMonthCode.toUpperCase()))
       ),
     ]);
 
@@ -1280,6 +1292,14 @@ const isValidUUID = (str?: string | null): boolean => {
 
     if (supabase) {
       try {
+        // 1. Delete prior dues_ledgers entries for this user and month to prevent conflict
+        await supabase
+          .from('dues_ledgers')
+          .delete()
+          .eq('corper_id', userId)
+          .or(`target_month.ilike.${targetMonthKey},target_month.ilike.${targetMonthCode}`);
+
+        // 2. Upsert approved approval request
         await supabase.from('approval_requests').upsert({
           id: overrideUuid,
           corper_id: userId,
@@ -1289,7 +1309,10 @@ const isValidUUID = (str?: string | null): boolean => {
           status: 'approved',
           payload: overrideSub,
         });
-        await supabase.from('dues_ledgers').upsert({
+
+        // 3. Insert verified ledger row
+        await supabase.from('dues_ledgers').insert({
+          id: generateUUID(),
           corper_id: userId,
           request_id: overrideUuid,
           title: `Admin Override: Force Clear - ${activeMonthLabel}`,
@@ -1309,14 +1332,16 @@ const isValidUUID = (str?: string | null): boolean => {
     const userId = user.id;
     const { monthKey: targetMonthKey, monthCode: targetMonthCode, monthName: activeMonthName, year: activeYear, activeMonthLabel } = getCurrentActiveLedgerMonth();
 
+    // 1. Update dues submissions in local state
     setDuesSubmissions((prev) =>
       prev.map((s) => {
         const isUser = s.userId === userId;
-        const isMonth = s.monthKey === targetMonthKey || s.monthCode === targetMonthCode;
+        const isMonth = s.monthKey?.toUpperCase() === targetMonthKey.toUpperCase() || s.monthCode?.toUpperCase() === targetMonthCode.toUpperCase();
         if (isUser && isMonth) {
           return {
             ...s,
-            status: 'rejected',
+            status: 'rejected' as const,
+            approvedAmount: 0,
             rejectionReason: justification,
             reviewedBy: 'Admin Override (Reset)',
             reviewedAt: new Date().toISOString(),
@@ -1326,6 +1351,7 @@ const isValidUUID = (str?: string | null): boolean => {
       })
     );
 
+    // 2. Clear local storage ledger override
     const currentEntries = getStoredUserLedger(user);
     const updatedLedger = currentEntries.map((e) => {
       const isActiveMonth = e.year === activeYear && (e.monthKey === targetMonthCode || e.monthName === activeMonthName);
@@ -1342,8 +1368,29 @@ const isValidUUID = (str?: string | null): boolean => {
     });
     saveUserLedger(userId, updatedLedger);
 
+    // 3. Clean up backend records in Supabase
     if (supabase) {
       try {
+        // Delete all dues_ledgers for this user and month
+        await supabase
+          .from('dues_ledgers')
+          .delete()
+          .eq('corper_id', userId)
+          .or(`target_month.ilike.${targetMonthKey},target_month.ilike.${targetMonthCode}`);
+
+        // Insert a reset entry in dues_ledgers so background fetch knows status is reset/unpaid
+        await supabase.from('dues_ledgers').insert({
+          id: generateUUID(),
+          corper_id: userId,
+          request_id: generateUUID(),
+          title: `Admin Override: Reset Standing - ${activeMonthLabel}`,
+          amount: 0,
+          subscription_type: 'combined',
+          target_month: targetMonthKey,
+          status: 'rejected',
+        });
+
+        // Update any existing approval requests for this corper
         const { data: existingRequests } = await supabase
           .from('approval_requests')
           .select('*')
@@ -1352,28 +1399,22 @@ const isValidUUID = (str?: string | null): boolean => {
         if (existingRequests && existingRequests.length > 0) {
           for (const req of existingRequests) {
             const p = req.payload || {};
-            if (p.monthKey === targetMonthKey || p.monthCode === targetMonthCode) {
+            const pMonthKey = (p.monthKey || '').toUpperCase();
+            const pMonthCode = (p.monthCode || '').toUpperCase();
+            const isTargetMonth = pMonthKey === targetMonthKey.toUpperCase() || pMonthCode === targetMonthCode.toUpperCase();
+            const isDues = req.request_category === 'dues_proof' || req.request_type === 'dues_waiver';
+
+            if (isDues && isTargetMonth) {
               await supabase
                 .from('approval_requests')
                 .update({
                   status: 'rejected',
-                  payload: { ...p, status: 'rejected', rejectionReason: justification },
+                  payload: { ...p, status: 'rejected', approvedAmount: 0, rejectionReason: justification },
                 })
                 .eq('id', req.id);
             }
           }
         }
-
-        await supabase.from('dues_ledgers').upsert({
-          corper_id: userId,
-          request_id: generateUUID(),
-          title: `Admin Override: Reset Standing - ${activeMonthLabel}`,
-          amount: 0,
-          subscription_type: 'combined',
-          target_month: targetMonthKey,
-          receipt_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=300',
-          status: 'rejected',
-        });
       } catch (err) {
         console.warn('[Supabase RequestsContext] Error resetting dues:', err);
       }
