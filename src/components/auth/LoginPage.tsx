@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { NccfLogo } from '../NccfLogo';
+import { RegistrationWizardModal } from './RegistrationWizardModal';
 import {
   Mail,
   Lock,
@@ -19,8 +20,19 @@ import {
   X,
   Users,
   HeartHandshake,
-  FileCheck
+  FileCheck,
+  UserPlus,
+  Clock,
+  UserCheck,
+  Info,
 } from 'lucide-react';
+
+interface FeedbackNotice {
+  type: 'pending' | 'unclaimed' | 'error' | 'success';
+  title?: string;
+  message: string;
+  action?: { text: string; onClick: () => void };
+}
 
 export const LoginPage: React.FC = () => {
   const { signIn, claimAccount, resetPassword } = useAuth();
@@ -28,6 +40,9 @@ export const LoginPage: React.FC = () => {
 
   // Mode: 'signin' | 'claim'
   const [authMode, setAuthMode] = useState<'signin' | 'claim'>('signin');
+
+  // Registration Modal
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   // Form Fields
   const [email, setEmail] = useState('');
@@ -39,6 +54,7 @@ export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [feedbackNotice, setFeedbackNotice] = useState<FeedbackNotice | null>(null);
 
   // Forgot Password Modal
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -49,6 +65,7 @@ export const LoginPage: React.FC = () => {
   const clearFeedback = () => {
     setErrorMsg(null);
     setSuccessMsg(null);
+    setFeedbackNotice(null);
   };
 
   const handleModeSwitch = (mode: 'signin' | 'claim') => {
@@ -61,7 +78,10 @@ export const LoginPage: React.FC = () => {
     clearFeedback();
 
     if (!email.trim() || !password) {
-      setErrorMsg('Please enter both your email address and password.');
+      setFeedbackNotice({
+        type: 'error',
+        message: 'Please enter both your email address and password.',
+      });
       return;
     }
 
@@ -69,14 +89,48 @@ export const LoginPage: React.FC = () => {
     try {
       const { error } = await signIn(email.trim(), password);
       if (error) {
-        setErrorMsg(error.message || 'Invalid email or password. Please check your credentials.');
-        showToast(error.message || 'Invalid email or password.', 'error');
+        if ((error as any).isPendingReview || error.name === 'PendingRegistrationError' || error.message?.toLowerCase().includes('under review')) {
+          const reviewMsg = error.message || 'Your registration application has been submitted and is currently under review by the Management. You will be able to log in once your admission is approved.';
+          setFeedbackNotice({
+            type: 'pending',
+            title: 'Registration Response Under Review',
+            message: reviewMsg,
+          });
+          showToast('Your registration response is currently under review. Access will be granted once approved by Management.', 'info');
+        } else if ((error as any).isUnclaimed || error.name === 'UnclaimedAccountError') {
+          setFeedbackNotice({
+            type: 'unclaimed',
+            title: 'Google Form Roster Profile Found',
+            message: error.message || 'Your profile has been registered from the Google Form roster! Please switch to the "Claim Account" tab above to choose your password and activate your access.',
+            action: {
+              text: 'Switch to Claim Account',
+              onClick: () => handleModeSwitch('claim'),
+            },
+          });
+          showToast('Please switch to the Claim Account tab to activate your password.', 'info');
+        } else if ((error as any).isRejected || error.name === 'RejectedRegistrationError') {
+          setFeedbackNotice({
+            type: 'error',
+            title: 'Registration Declined',
+            message: error.message,
+          });
+          showToast(error.message, 'error');
+        } else {
+          setFeedbackNotice({
+            type: 'error',
+            message: error.message || 'Invalid email or password. Please check your credentials.',
+          });
+          showToast(error.message || 'Invalid email or password.', 'error');
+        }
       } else {
         setSuccessMsg('Successfully authenticated! Welcome back.');
         showToast('Successfully authenticated! Welcome back.', 'success');
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || 'An unexpected authentication error occurred.');
+      setFeedbackNotice({
+        type: 'error',
+        message: err?.message || 'An unexpected authentication error occurred.',
+      });
       showToast(err?.message || 'Authentication error', 'error');
     } finally {
       setIsSubmitting(false);
@@ -88,19 +142,28 @@ export const LoginPage: React.FC = () => {
     clearFeedback();
 
     if (!email.trim() || !stateCode.trim() || !password) {
-      setErrorMsg('Please complete all required fields: Email, State Code, and Password.');
+      setFeedbackNotice({
+        type: 'error',
+        message: 'Please complete all required fields: Email, State Code, and Password.',
+      });
       return;
     }
 
     // Basic state code validation (e.g. RV/26B/1234 or similar)
     const formattedStateCode = stateCode.trim().toUpperCase();
     if (formattedStateCode.length < 5) {
-      setErrorMsg('Please enter a valid NYSC State Code (e.g., RV/26B/1590).');
+      setFeedbackNotice({
+        type: 'error',
+        message: 'Please enter a valid NYSC State Code (e.g., RV/26B/1590).',
+      });
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters long.');
+      setFeedbackNotice({
+        type: 'error',
+        message: 'Password must be at least 6 characters long.',
+      });
       return;
     }
 
@@ -108,14 +171,20 @@ export const LoginPage: React.FC = () => {
     try {
       const { error } = await claimAccount(email.trim(), formattedStateCode, password);
       if (error) {
-        setErrorMsg(error.message || 'Account claim failed. Verify your email and State Code matches our roster.');
+        setFeedbackNotice({
+          type: 'error',
+          message: error.message || 'Account claim failed. Verify your email and State Code matches our roster.',
+        });
         showToast(error.message || 'Account claim failed.', 'error');
       } else {
         setSuccessMsg('Account claimed and activated successfully! Signing you in...');
         showToast('Account claimed & activated successfully!', 'success');
       }
     } catch (err: any) {
-      setErrorMsg(err?.message || 'An error occurred while claiming your account.');
+      setFeedbackNotice({
+        type: 'error',
+        message: err?.message || 'An error occurred while claiming your account.',
+      });
       showToast(err?.message || 'Claim error', 'error');
     } finally {
       setIsSubmitting(false);
@@ -161,7 +230,7 @@ export const LoginPage: React.FC = () => {
       {/* 2. SUBTLE TRANSLUCENT TINT FOR CRISP TEXT LEGIBILITY (NOT CLOUDED) */}
       <div className="fixed inset-0 bg-black/60 pointer-events-none" />
 
-      {/* LEFT PANEL (Desktop 60% Width Split-Screen) */}
+      {/* LEFT PANEL (Desktop 60% Width Split-Screen, strictly hidden on smaller screens) */}
       <div className="hidden lg:flex lg:w-[60%] flex-col justify-between p-12 lg:p-16 bg-zinc-900/20 relative overflow-hidden border-r border-white/10 backdrop-blur-xl">
 
         {/* Decorative Glass Halos */}
@@ -171,9 +240,7 @@ export const LoginPage: React.FC = () => {
         {/* Top Header Logo + Title */}
         <div className="flex items-center space-x-3 z-10">
           <div className="relative flex items-center justify-center p-2">
-            {/* <div className="absolute inset-0 rounded-full bg-blue-500/30 animate-ping pointer-events-none" />
-            <div className="absolute -inset-1 rounded-full bg-blue-500/40 animate-pulse pointer-events-none blur-xs" /> */}
-            <NccfLogo className="w-16 h-16 animted-pulse relative z-10" />
+            <NccfLogo className="w-16 h-16 relative z-10" />
             <div className="absolute -inset-2 border border-blue-500/30 rounded-full animate-ping pointer-events-none" />
           </div>
           <div>
@@ -205,6 +272,21 @@ export const LoginPage: React.FC = () => {
           <p className="text-slate-300 text-base leading-relaxed font-normal">
             Welcome to the official portal for NCCF Corpers in Rivers State. Access house dues clearance, submit exeat requests, track unit activities, and manage your profile seamlessly.
           </p>
+
+          {/* Registration Trigger on Left Split Panel */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowRegisterModal(true)}
+              className="inline-flex items-center space-x-2.5 px-5 py-3 rounded-2xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-900/40 border border-emerald-500/30 transition-all transform active:scale-95 cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Register on Portal</span>
+            </button>
+            <p className="text-xs text-slate-400 mt-2">
+              New to Family House? Submit your 19-field registration for steward approval.
+            </p>
+          </div>
 
           {/* Feature Highlights Grid - Low Opacity Glass Cards */}
           <div className="grid grid-cols-3 gap-4 pt-2">
@@ -251,7 +333,7 @@ export const LoginPage: React.FC = () => {
           <div className="lg:hidden flex flex-col items-center text-center shrink-0">
             <div className="relative flex items-center justify-center p-1.5 mb-1">
               <div className="absolute -inset-2 border border-blue-500/30 rounded-full animate-ping pointer-events-none" />
-              <NccfLogo className="w-13 h-13 sm:w-16 sm:h-16 animate-pulse relative z-10" />
+              <NccfLogo className="w-13 h-13 sm:w-16 sm:h-16 relative z-10" />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">NCCF RIVERS STATE</h1>
             <p className="text-[11px] sm:text-xs font-bold text-blue-400 uppercase tracking-widest mt-0.5">Family House Portal</p>
@@ -302,8 +384,80 @@ export const LoginPage: React.FC = () => {
 
           {/* Feedback Alert Banners */}
           <AnimatePresence mode="wait">
-            {errorMsg && (
+            {feedbackNotice && feedbackNotice.type === 'pending' && (
               <motion.div
+                key="pending-banner"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-5 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex flex-col space-y-2 backdrop-blur-md shadow-lg shadow-amber-500/5"
+              >
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span className="font-bold text-amber-300 uppercase tracking-wide text-[11px]">
+                    {feedbackNotice.title || 'Registration Under Review'}
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed text-amber-100/90 pl-6">
+                  {feedbackNotice.message}
+                </p>
+              </motion.div>
+            )}
+
+            {feedbackNotice && feedbackNotice.type === 'unclaimed' && (
+              <motion.div
+                key="unclaimed-banner"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-5 p-4 rounded-2xl bg-blue-500/15 border border-blue-500/30 text-blue-200 text-xs flex flex-col space-y-2 backdrop-blur-md shadow-lg shadow-blue-500/5"
+              >
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                  <span className="font-bold text-blue-300 uppercase tracking-wide text-[11px]">
+                    {feedbackNotice.title || 'Profile Found'}
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed text-blue-100/90 pl-6">
+                  {feedbackNotice.message}
+                </p>
+                {feedbackNotice.action && (
+                  <div className="pl-6 pt-1">
+                    <button
+                      type="button"
+                      onClick={feedbackNotice.action.onClick}
+                      className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] transition-colors cursor-pointer"
+                    >
+                      {feedbackNotice.action.text} →
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {feedbackNotice && feedbackNotice.type === 'error' && (
+              <motion.div
+                key="error-banner"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-5 p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start space-x-2.5 backdrop-blur-md"
+              >
+                <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  {feedbackNotice.title && (
+                    <span className="block font-bold text-rose-400 text-[11px] uppercase tracking-wide">
+                      {feedbackNotice.title}
+                    </span>
+                  )}
+                  <span className="leading-tight font-medium">{feedbackNotice.message}</span>
+                </div>
+              </motion.div>
+            )}
+
+            {errorMsg && !feedbackNotice && (
+              <motion.div
+                key="simple-error-banner"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -316,12 +470,13 @@ export const LoginPage: React.FC = () => {
 
             {successMsg && (
               <motion.div
+                key="success-banner"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mb-5 p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-start space-x-2.5 backdrop-blur-md"
+                className="mb-5 p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-xs flex items-start space-x-2.5 backdrop-blur-md shadow-lg shadow-emerald-500/5"
               >
-                <CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <span className="leading-tight font-medium">{successMsg}</span>
               </motion.div>
             )}
@@ -403,6 +558,18 @@ export const LoginPage: React.FC = () => {
                   </>
                 )}
               </button>
+
+              {/* Register Callout Link Inside Card */}
+              <div className="text-center pt-3 border-t border-white/10 mt-4">
+                <span className="text-xs text-slate-400">Not on the portal yet? </span>
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterModal(true)}
+                  className="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-4 cursor-pointer transition-colors"
+                >
+                  Register here
+                </button>
+              </div>
             </form>
           ) : (
             /* Mode 2: CLAIM ACCOUNT FORM */
@@ -488,12 +655,34 @@ export const LoginPage: React.FC = () => {
                   </>
                 )}
               </button>
+
+              {/* Register Callout Link Inside Card */}
+              <div className="text-center pt-3 border-t border-white/10 mt-4">
+                <span className="text-xs text-slate-400">Not on the portal yet? </span>
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterModal(true)}
+                  className="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-4 cursor-pointer transition-colors"
+                >
+                  Register here
+                </button>
+              </div>
             </form>
           )}
 
           </motion.div>
         </div>
       </div>
+
+      {/* REGISTRATION WIZARD MODAL */}
+      <RegistrationWizardModal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        onSuccess={() => {
+          setShowRegisterModal(false);
+          showToast('Registration submitted for steward approval! You can claim your account after approval.', 'success');
+        }}
+      />
 
       {/* FORGOT PASSWORD MODAL */}
       <AnimatePresence>
