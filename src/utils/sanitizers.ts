@@ -1,11 +1,11 @@
 import { CorperProfile, TargetFees } from '../types/corper';
 
 /**
- * Regex enforcing Rivers State NYSC Corper State Code format:
- * RV / YY [A-C] / 0000
- * Example: RV/24A/0001
+ * Regex enforcing standard NYSC Corper State Code format:
+ * [2 Letters] / [2-digit Year + Batch A-C] / [4 Digits]
+ * Examples: RV/26A/1234, LA/25B/0088, AB/24C/5012
  */
-export const STATE_CODE_REGEX = /^RV\/\d{2}[A-C]\/\d{4}$/;
+export const STATE_CODE_REGEX = /^[A-Z]{2}\/\d{2}[A-C]\/\d{4}$/;
 
 /**
  * Validates state code string against state code regex pattern

@@ -21,7 +21,7 @@ export const APP_CONFIG = {
   executiveDuesAccount: {
     accountNumber: import.meta.env.VITE_EXECUTIVE_DUES_ACCOUNT_NUMBER,
     bankName: import.meta.env.VITE_EXECUTIVE_DUES_BANK_NAME,
-    accountName: import.meta.env.VITE_EXECUTIVE_DUES_ACCOUNT_NAM,
+    accountName: import.meta.env.VITE_EXECUTIVE_DUES_ACCOUNT_NAME,
   } as BankAccountConfig,
 
   // Developer & Welfare Team Contact

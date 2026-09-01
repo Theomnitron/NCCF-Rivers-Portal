@@ -28,7 +28,7 @@ interface HrDashboardOverviewProps {
 
 export const HrDashboardOverview: React.FC<HrDashboardOverviewProps> = ({ onNavigateTab }) => {
   const { allUsers } = useAuth();
-  const { duesSubmissions, travelRequests, profileRequests } = useRequests();
+  const { duesSubmissions, travelRequests, profileRequests, pendingRegistrations } = useRequests();
 
   // Active financial month derived dynamically from real-life date
   const { monthCode: activeMonthCode, year: activeYear, activeMonthLabel, monthName: activeMonthName } = getCurrentActiveLedgerMonth();
@@ -90,7 +90,8 @@ export const HrDashboardOverview: React.FC<HrDashboardOverviewProps> = ({ onNavi
   const pendingDuesCount = duesSubmissions.filter((d) => d.status === 'pending').length;
   const pendingTravelCount = travelRequests.filter((t) => t.status === 'pending').length;
   const pendingProfileCount = profileRequests.filter((p) => p.status === 'pending').length;
-  const totalPendingQueue = pendingDuesCount + pendingTravelCount + pendingProfileCount;
+  const pendingRegistrationsCount = (pendingRegistrations || []).filter((r) => r.status === 'pending').length;
+  const totalPendingQueue = pendingDuesCount + pendingTravelCount + pendingProfileCount + pendingRegistrationsCount;
 
   // Population Breakdown By Governance Tier
   const tierBreakdown = [
@@ -254,10 +255,19 @@ export const HrDashboardOverview: React.FC<HrDashboardOverviewProps> = ({ onNavi
               </p>
             </div>
 
-            <div className="pt-2 border-t border-slate-900/10 dark:border-white/10 flex items-center justify-between text-[10px] font-mono text-zinc-600 dark:text-zinc-300">
-              <span>Dues: <b>{pendingDuesCount}</b></span>
-              <span>Travel: <b>{pendingTravelCount}</b></span>
-              <span>Profile: <b>{pendingProfileCount}</b></span>
+            <div className="pt-2 border-t border-slate-900/10 dark:border-white/10 flex flex-wrap items-center justify-between gap-1 text-[11px] font-mono text-zinc-600 dark:text-zinc-300">
+              <span className="px-1.5 py-0.5 rounded bg-slate-900/5 dark:bg-white/5 whitespace-nowrap">
+                Dues: <b className="text-zinc-900 dark:text-white">{pendingDuesCount}</b>
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-slate-900/5 dark:bg-white/5 whitespace-nowrap">
+                Travel: <b className="text-zinc-900 dark:text-white">{pendingTravelCount}</b>
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-slate-900/5 dark:bg-white/5 whitespace-nowrap">
+                Profile: <b className="text-zinc-900 dark:text-white">{pendingProfileCount}</b>
+              </span>
+              <span className={`px-1.5 py-0.5 rounded whitespace-nowrap ${pendingRegistrationsCount > 0 ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/30' : 'bg-slate-900/5 dark:bg-white/5'}`}>
+                Admissions: <b className={pendingRegistrationsCount > 0 ? 'text-amber-800 dark:text-amber-200' : 'text-zinc-900 dark:text-white'}>{pendingRegistrationsCount}</b>
+              </span>
             </div>
           </div>
         </RevealOnScroll>
