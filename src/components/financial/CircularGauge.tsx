@@ -114,15 +114,9 @@ export const CircularGauge: React.FC<CircularGaugeProps> = ({
           />
         </svg>
 
-        {/* Center Label Overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-1 leading-tight select-none pointer-events-none">
-          <span className="text-xs xs:text-sm sm:text-lg md:text-xl font-black font-mono text-zinc-900 dark:text-white leading-tight transition-all duration-300">
-            ₦{currentPaid.toLocaleString()}
-          </span>
-          <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono text-zinc-500 dark:text-zinc-400 font-bold mt-0.5 leading-tight">
-            / ₦{targetAmount.toLocaleString()}
-          </span>
-          <span className="text-[10px] xs:text-xs sm:text-sm font-black text-zinc-900 dark:text-zinc-100 font-mono mt-0.5 leading-tight">
+        {/* Center Label Overlay - Percentage Only Enlarged */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-1 leading-none select-none pointer-events-none">
+          <span className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black font-mono tracking-tight text-zinc-900 dark:text-white leading-none transition-all duration-300">
             {percentage}%
           </span>
         </div>

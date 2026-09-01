@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CorperProfile } from '../../types/corper';
 import { getStoredUserLedger, saveUserLedger } from '../../data/initialLedger';
 import { MonthLedgerEntry } from '../../types/ledger';
+import { getCurrentActiveLedgerMonth } from '../../utils/duesCalculator';
 import { X, CheckCircle2, Layers, Coins, Image, ArrowRight, ShieldCheck, Check } from 'lucide-react';
 
 interface IntentAllocationDrawerProps {
@@ -36,10 +37,10 @@ export const IntentAllocationDrawer: React.FC<IntentAllocationDrawerProps> = ({
   const [allocationAmount, setAllocationAmount] = useState<number>(defaultAmount);
   const [selectedOption, setSelectedOption] = useState<'A' | 'B' | 'C'>('B'); // B: Waterfall by default
 
-  // Custom split inputs for Option C
+  const activeMonthInfo = getCurrentActiveLedgerMonth();
   const [customMaintenance, setCustomMaintenance] = useState<number>(maintTarget);
   const [customFeeding, setCustomFeeding] = useState<number>(feedTarget);
-  const [selectedMonthKey, setSelectedMonthKey] = useState<string>('AUG');
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>(activeMonthInfo.monthCode);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);

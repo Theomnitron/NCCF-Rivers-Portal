@@ -15,6 +15,7 @@ import {
   Clock,
   Sparkles,
   Info,
+  Download,
 } from 'lucide-react';
 
 export const TravelRequestSection: React.FC = () => {
@@ -25,8 +26,8 @@ export const TravelRequestSection: React.FC = () => {
   // Filter travel requests for this user
   const userTravelRequests = travelRequests.filter((r) => r.userId === activeUser.id);
 
-  const [departureDate, setDepartureDate] = useState('2026-08-12');
-  const [returnDate, setReturnDate] = useState('2026-08-18');
+  const [departureDate, setDepartureDate] = useState('2026-09-02');
+  const [returnDate, setReturnDate] = useState('2026-09-08');
   const [reason, setReason] = useState('');
   const [detailedExplanation, setDetailedExplanation] = useState('');
   const [contactDuringAbsence, setContactDuringAbsence] = useState('');
@@ -36,6 +37,100 @@ export const TravelRequestSection: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleDownloadTemplate = () => {
+    const userName = activeUser.displayName || `${activeUser.firstName} ${activeUser.lastName}`;
+    const userStateCode = activeUser.stateCode || '[YOUR NYSC STATE CODE]';
+
+    const content = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='utf-8'>
+<title>Official Travel Request Letter Template</title>
+<style>
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    line-height: 1.6;
+    margin: 1in;
+    color: #000;
+  }
+  .header-to {
+    margin-bottom: 24pt;
+    line-height: 1.4;
+  }
+  .subject {
+    text-align: center;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-top: 18pt;
+    margin-bottom: 18pt;
+    font-size: 13pt;
+    text-transform: uppercase;
+  }
+  .key-info {
+    margin-top: 12pt;
+    margin-bottom: 16pt;
+  }
+  .key-info li {
+    margin-bottom: 6pt;
+  }
+  .sign-off {
+    margin-top: 36pt;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<div class="header-to">
+<strong>To:</strong> The Management,<br/>
+<strong>Through:</strong> Transport and Organizing (TOS) Unit,<br/>
+NCCF Rivers State Chapter.
+</div>
+
+<div class="subject">
+REASON FOR TRAVEL<br/>
+<span style="font-size: 11pt; font-weight: normal; text-decoration: none; text-transform: none;">[Insert Travel Reason / Destination Heading Here]</span>
+</div>
+
+<p>Dear Sir/Madam,</p>
+
+<p>
+I am writing to formally apply for official travel permit / exeat clearance to travel outside the State starting from <strong>[Proposed Departure Date]</strong> to <strong>[Proposed Return Date]</strong>.
+</p>
+
+<p>
+[State the exact purpose and details of your journey clearly here. Provide context on destinations, events, or official NYSC obligations, and confirm handover/coverage of any routine responsibilities during your absence.]
+</p>
+
+<p><strong>Key Travel Information:</strong></p>
+<ul class="key-info">
+  <li><strong>Proposed Departure Date:</strong> [DD/MM/YYYY]</li>
+  <li><strong>Proposed Return Date:</strong> [DD/MM/YYYY]</li>
+  <li><strong>Contact During Absence:</strong> [Active Phone Number & WhatsApp]</li>
+</ul>
+
+<p>I look forward to your favorable consideration and approval.</p>
+
+<div class="sign-off">
+Yours faithfully,<br/><br/><br/>
+___________________________<br/>
+<strong>${userName}</strong><br/>
+${userStateCode}
+</div>
+</body>
+</html>`;
+
+    const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'NCCF_Rivers_Travel_Request_Letter_Template.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Official travel request letter template downloaded!', 'success');
+  };
 
   const handleFileDrop = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -267,11 +362,22 @@ export const TravelRequestSection: React.FC = () => {
             />
           </div>
 
-          {/* 5. Supporting Letter (Image ONLY) */}
+          {/* 5. Supporting Letter (Image ONLY) & Template Downloader */}
           <div>
-            <label className="block text-zinc-800 dark:text-zinc-200 font-bold mb-1.5">
-              Supporting Letter Image (Image ONLY)
-            </label>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2">
+              <label className="block text-zinc-800 dark:text-zinc-200 font-bold">
+                Supporting Letter Image (Image ONLY)
+              </label>
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                className="inline-flex items-center space-x-1.5 text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors py-1 px-2.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 cursor-pointer self-start sm:self-auto"
+                title="Download editable official travel request letter template (.docx)"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download Letter Template (.docx)</span>
+              </button>
+            </div>
 
             {!processedFile ? (
               <div

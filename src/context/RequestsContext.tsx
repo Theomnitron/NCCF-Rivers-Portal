@@ -5,6 +5,8 @@ import { calculateWaterfallDues, getFeedingTarget, getCurrentActiveLedgerMonth }
 import { CorperProfile } from '../types/corper';
 import { supabase } from '../lib/supabase';
 import { uploadFileToStorage } from '../utils/storage';
+import { PendingRegistration, getStoredPendingRegistrations, saveStoredPendingRegistrations } from '../types/registration';
+import { syncApprovedCorperToGoogleSheet } from '../services/registrationService';
 
 export interface CorperRequest {
   id: string;
@@ -110,6 +112,7 @@ interface RequestsContextType {
   duesSubmissions: DuesReceiptSubmission[];
   travelRequests: TravelRequestSubmission[];
   profileRequests: ProfileChangeRequestSubmission[];
+  pendingRegistrations: PendingRegistration[];
   isLoadingRequests?: boolean;
   addDuesSubmission: (sub: Omit<DuesReceiptSubmission, 'id' | 'submittedAt' | 'status'>) => string;
   approveDuesSubmission: (id: string, reviewerName: string, overrideAmount?: number) => void;
@@ -121,10 +124,14 @@ interface RequestsContextType {
   approveProfileRequest: (id: string, reviewerName: string, updateUserProfile: (userId: string, updates: any) => void) => void;
   rejectProfileRequest: (id: string, reviewerName: string, reason: string) => void;
 
+  // New Registration Approvals
+  approveRegistration: (id: string, reviewerName: string, addCorperUser?: (data: any) => any) => Promise<{ success: boolean; error?: string }>;
+  rejectRegistration: (id: string, reviewerName: string, reason: string) => Promise<{ success: boolean; error?: string }>;
+
   // Convenience Aliases for prompt requirement compliance
   submitTravelPermit?: (req: Omit<TravelRequestSubmission, 'id' | 'submittedAt' | 'status'>) => string;
-  approveRequest?: (id: string, type: 'dues' | 'travel' | 'profile', reviewerName: string, extra?: any) => void;
-  rejectRequest?: (id: string, type: 'dues' | 'travel' | 'profile', reviewerName: string, reason: string) => void;
+  approveRequest?: (id: string, type: 'dues' | 'travel' | 'profile' | 'registration', reviewerName: string, extra?: any) => void;
+  rejectRequest?: (id: string, type: 'dues' | 'travel' | 'profile' | 'registration', reviewerName: string, reason: string) => void;
   publishNotice?: (noticeData: any) => string;
   forceClearUserDues?: (user: CorperProfile, justification: string) => Promise<void>;
   resetUserDues?: (user: CorperProfile, justification: string) => Promise<void>;
@@ -418,9 +425,10 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [duesSubmissions, setDuesSubmissions] = useState<DuesReceiptSubmission[]>([]);
   const [travelRequests, setTravelRequests] = useState<TravelRequestSubmission[]>([]);
   const [profileRequests, setProfileRequests] = useState<ProfileChangeRequestSubmission[]>([]);
+  const [pendingRegistrations, setPendingRegistrations] = useState<PendingRegistration[]>(() => getStoredPendingRegistrations());
   const [isLoadingRequests, setIsLoadingRequests] = useState<boolean>(true);
 
-  // Fetch initial state from Supabase approval_requests, announcements, and dues_ledgers
+  // Fetch initial state from Supabase approval_requests, announcements, dues_ledgers, and pending_registrations
   const fetchInitialRequests = async () => {
     if (!supabase) {
       setIsLoadingRequests(false);
@@ -428,17 +436,20 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
     setIsLoadingRequests(true);
     try {
-      const [approvalsRes, ledgerRes] = await Promise.all([
+      const [approvalsRes, ledgerRes, regRes] = await Promise.all([
         supabase.from('approval_requests').select('*').order('created_at', { ascending: false }),
         supabase.from('dues_ledgers').select('*').order('created_at', { ascending: false }),
+        supabase.from('pending_registrations').select('*').order('created_at', { ascending: false }),
       ]);
 
       const approvalsData = approvalsRes.data;
       const ledgerData = ledgerRes.data;
+      const regData = regRes.data;
 
       const duesList: DuesReceiptSubmission[] = [];
       const travelList: TravelRequestSubmission[] = [];
       const profileList: ProfileChangeRequestSubmission[] = [];
+      const regList: PendingRegistration[] = [];
 
       if (approvalsData) {
         for (const row of approvalsData) {
@@ -449,6 +460,126 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             travelList.push(mapRowToTravelRequest(row));
           } else if (reqType === 'profile_update' || reqType === 'room_change' || reqType === 'unit_change' || reqType === 'marital_status_change') {
             profileList.push(mapRowToProfileRequest(row));
+          } else if (reqType === 'user_registration' || reqType === 'new_registration' || reqType === 'member_registration') {
+            // Also pick up from approval_requests fallback if stored there
+            const p = row.payload || {};
+            const st = (row.status === 'approved' ? 'approved' : row.status === 'rejected' ? 'rejected' : 'pending');
+            regList.push({
+              id: row.id,
+              first_name: p.firstName || '',
+              middle_name: p.middleName || '',
+              last_name: p.lastName || '',
+              state_code: p.stateCode || '',
+              phone_number: p.phone || p.phoneNumber || '',
+              firstName: p.firstName || '',
+              middleName: p.middleName || '',
+              lastName: p.lastName || '',
+              fullName: p.fullName || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
+              stateCode: p.stateCode || '',
+              email: p.email || '',
+              phone: p.phone || p.phoneNumber || '',
+              phoneNumber: p.phone || p.phoneNumber || '',
+              gender: p.gender || 'Male',
+              date_of_birth: p.dateOfBirth || '',
+              dateOfBirth: p.dateOfBirth || '',
+              state_of_origin: p.stateOfOrigin || '',
+              stateOfOrigin: p.stateOfOrigin || '',
+              course_of_study: p.courseOfStudy || '',
+              courseOfStudy: p.courseOfStudy || '',
+              school_graduated_from: p.schoolGraduatedFrom || '',
+              schoolGraduatedFrom: p.schoolGraduatedFrom || '',
+              marital_status: p.maritalStatus || 'Not Engaged',
+              maritalStatus: p.maritalStatus || 'Not Engaged',
+              next_of_kin_name: p.nextOfKinName || '',
+              nextOfKinName: p.nextOfKinName || '',
+              next_of_kin_phone: p.nextOfKinPhone || '',
+              nextOfKinPhone: p.nextOfKinPhone || '',
+              house_status: p.houseStatus || 'Member',
+              houseStatus: p.houseStatus || 'Member',
+              room_name: p.roomName || '',
+              roomName: p.roomName || '',
+              service_units: p.serviceUnits || [],
+              serviceUnits: p.serviceUnits || [],
+              presence: p.presence || 'Present',
+              avatar_url: p.avatarUrl || row.attachment_url || '',
+              avatarUrl: p.avatarUrl || row.attachment_url || '',
+              status: st,
+              created_at: row.created_at || new Date().toISOString(),
+              createdAt: row.created_at || new Date().toISOString(),
+              reviewed_by: row.reviewed_by,
+              reviewedBy: row.reviewed_by,
+              reviewedAt: row.resolved_at,
+              rejectionReason: row.reviewer_notes,
+            });
+          }
+        }
+      }
+
+      if (regData && regData.length > 0) {
+        for (const r of regData) {
+          // Avoid duplicate if already mapped
+          const existingIdx = regList.findIndex((x) => x.id === r.id || (r.state_code && x.state_code === r.state_code) || (r.email && x.email === r.email));
+          const st = (r.status === 'approved' ? 'approved' : r.status === 'rejected' ? 'rejected' : 'pending');
+          if (existingIdx >= 0) {
+            regList[existingIdx].status = st;
+          } else {
+            regList.push({
+              id: r.id,
+              first_name: r.first_name || '',
+              middle_name: r.middle_name || '',
+              last_name: r.last_name || '',
+              state_code: r.state_code || '',
+              phone_number: r.phone_number || r.phone || '',
+              firstName: r.first_name || '',
+              middleName: r.middle_name || '',
+              lastName: r.last_name || '',
+              fullName: `${r.first_name || ''} ${r.middle_name ? r.middle_name + ' ' : ''}${r.last_name || ''}`.trim(),
+              stateCode: r.state_code || '',
+              email: r.email || '',
+              phone: r.phone_number || r.phone || '',
+              phoneNumber: r.phone_number || r.phone || '',
+              gender: r.gender || 'Male',
+              date_of_birth: r.date_of_birth || '',
+              dateOfBirth: r.date_of_birth || '',
+              state_of_origin: r.state_of_origin || '',
+              stateOfOrigin: r.state_of_origin || '',
+              course_of_study: r.course_of_study || '',
+              courseOfStudy: r.course_of_study || '',
+              school_graduated_from: r.school_graduated_from || '',
+              schoolGraduatedFrom: r.school_graduated_from || '',
+              marital_status: r.marital_status || 'Not Engaged',
+              maritalStatus: r.marital_status || 'Not Engaged',
+              next_of_kin_name: r.next_of_kin_name || '',
+              nextOfKinName: r.next_of_kin_name || '',
+              next_of_kin_phone: r.next_of_kin_phone || '',
+              nextOfKinPhone: r.next_of_kin_phone || '',
+              house_status: r.house_status || 'Member',
+              houseStatus: r.house_status || 'Member',
+              room_name: r.room_name || '',
+              roomName: r.room_name || '',
+              service_units: Array.isArray(r.service_units) ? r.service_units : [],
+              serviceUnits: Array.isArray(r.service_units) ? r.service_units : [],
+              presence: r.presence || 'Present',
+              avatar_url: r.avatar_url || '',
+              avatarUrl: r.avatar_url || '',
+              status: st,
+              created_at: r.created_at || new Date().toISOString(),
+              createdAt: r.created_at || new Date().toISOString(),
+              reviewed_by: r.reviewed_by,
+              reviewedBy: r.reviewed_by,
+              reviewedAt: r.resolved_at || r.updated_at,
+              rejectionReason: r.rejection_reason,
+            });
+          }
+        }
+      }
+
+      // Merge cached local registrations if not found in db and still pending
+      const localCached = getStoredPendingRegistrations();
+      for (const loc of localCached) {
+        if (!regList.some((x) => x.id === loc.id || (loc.state_code && x.state_code === loc.state_code) || (loc.stateCode && x.stateCode === loc.stateCode))) {
+          if (loc.status === 'pending' || !loc.status) {
+            regList.push(loc);
           }
         }
       }
@@ -538,6 +669,8 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setDuesSubmissions(duesList);
       setTravelRequests(travelList);
       setProfileRequests(profileList);
+      setPendingRegistrations(regList);
+      saveStoredPendingRegistrations(regList);
     } catch (err) {
       // Network exception fallback
     } finally {
@@ -563,7 +696,7 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       fetchInitialRequests();
     }, 60000);
 
-    // 3. Establish Realtime channel subscriptions for approval_requests & dues_ledgers
+    // 3. Establish Realtime channel subscriptions for approval_requests, dues_ledgers, and pending_registrations
     const channel = supabase
       .channel('realtime_requests_all')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'approval_requests' }, (payload) => {
@@ -579,13 +712,19 @@ export const RequestsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           } else if (reqType === 'profile_update' || reqType === 'room_change' || reqType === 'unit_change' || reqType === 'marital_status_change') {
             const item = mapRowToProfileRequest(row);
             setProfileRequests((prev) => [item, ...prev.filter((p) => p.id !== item.id)]);
+          } else if (reqType === 'user_registration' || reqType === 'new_registration') {
+            fetchInitialRequests();
           }
         } else if (payload.eventType === 'DELETE') {
           const deletedId = payload.old.id;
           setDuesSubmissions((prev) => prev.filter((d) => d.id !== deletedId));
           setTravelRequests((prev) => prev.filter((t) => t.id !== deletedId));
           setProfileRequests((prev) => prev.filter((p) => p.id !== deletedId));
+          setPendingRegistrations((prev) => prev.filter((r) => r.id !== deletedId));
         }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_registrations' }, () => {
+        fetchInitialRequests();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dues_ledgers' }, () => {
         fetchInitialRequests();
@@ -1421,12 +1560,224 @@ const isValidUUID = (str?: string | null): boolean => {
     }
   };
 
+  const approveRegistration = async (
+    id: string,
+    reviewerName: string,
+    addCorperUser?: (data: any) => any
+  ): Promise<{ success: boolean; error?: string }> => {
+    const targetReg = pendingRegistrations.find((r) => r.id === id);
+    if (!targetReg) return { success: false, error: 'Registration request not found' };
+
+    const resolvedAt = new Date().toISOString();
+    const targetStateCode = (targetReg.stateCode || (targetReg as any).state_code || '').trim();
+    const targetEmail = (targetReg.email || '').trim().toLowerCase();
+
+    // 1. Remove from pendingRegistrations state immediately
+    setPendingRegistrations((prev) =>
+      prev.filter((r) => r.id !== id && (!targetStateCode || (r.stateCode !== targetStateCode && (r as any).state_code !== targetStateCode)))
+    );
+
+    // 2. Remove from local storage cache
+    const currentLocal = getStoredPendingRegistrations();
+    const updatedLocal = currentLocal.filter(
+      (p) =>
+        p.id !== id &&
+        (!targetStateCode || (p.state_code !== targetStateCode && p.stateCode !== targetStateCode)) &&
+        (!targetEmail || p.email?.toLowerCase() !== targetEmail)
+    );
+    saveStoredPendingRegistrations(updatedLocal);
+
+    // 3. Add to active Corper Roster via AuthContext if provided with all 19 fields
+    if (addCorperUser) {
+      const sUnits = Array.isArray(targetReg.serviceUnits)
+        ? targetReg.serviceUnits
+        : Array.isArray((targetReg as any).service_units)
+        ? (targetReg as any).service_units
+        : [];
+
+      await addCorperUser({
+        id: targetReg.id,
+        userId: targetReg.id,
+        firstName: targetReg.firstName || (targetReg as any).first_name || '',
+        middleName: targetReg.middleName || (targetReg as any).middle_name || undefined,
+        lastName: targetReg.lastName || (targetReg as any).last_name || '',
+        name: targetReg.fullName || `${targetReg.firstName || (targetReg as any).first_name || ''} ${targetReg.lastName || (targetReg as any).last_name || ''}`.trim(),
+        stateCode: targetStateCode,
+        email: targetEmail,
+        phone: targetReg.phone || (targetReg as any).phoneNumber || (targetReg as any).phone_number || '',
+        gender: targetReg.gender || 'Male',
+        dateOfBirth: targetReg.dateOfBirth || (targetReg as any).date_of_birth || '',
+        stateOfOrigin: targetReg.stateOfOrigin || (targetReg as any).state_of_origin || '',
+        courseOfStudy: targetReg.courseOfStudy || (targetReg as any).course_of_study || '',
+        schoolGraduatedFrom: targetReg.schoolGraduatedFrom || (targetReg as any).school_graduated_from || (targetReg as any).institution || '',
+        maritalStatus: targetReg.maritalStatus || (targetReg as any).marital_status || 'Not Engaged',
+        nextOfKinName: targetReg.nextOfKinName || (targetReg as any).next_of_kin_name || undefined,
+        nextOfKinPhone: targetReg.nextOfKinPhone || (targetReg as any).next_of_kin_phone || undefined,
+        houseStatus: targetReg.houseStatus || (targetReg as any).house_status || 'Member',
+        executivePost: targetReg.executivePost || (targetReg as any).executive_post || undefined,
+        roomName: targetReg.roomName || (targetReg as any).room_name || 'Timothy',
+        serviceUnit: sUnits.join(', '),
+        serviceUnits: sUnits,
+        presence: targetReg.presence || 'Present',
+        avatarUrl: targetReg.avatarUrl || (targetReg as any).avatar_url || undefined,
+      });
+    }
+
+    // 4. Sync to Google Sheets Webhook in background
+    syncApprovedCorperToGoogleSheet(targetReg);
+
+    // 5. Update pending_registrations status to 'approved' and record reviewer audit metadata
+    if (supabase) {
+      try {
+        if (id) {
+          await supabase
+            .from('pending_registrations')
+            .update({
+              status: 'approved',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              updated_at: resolvedAt,
+            })
+            .eq('id', id);
+        }
+        if (targetStateCode) {
+          await supabase
+            .from('pending_registrations')
+            .update({
+              status: 'approved',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              updated_at: resolvedAt,
+            })
+            .ilike('state_code', targetStateCode);
+        }
+
+        // Update approval_requests log if stored there
+        if (id) {
+          await supabase
+            .from('approval_requests')
+            .update({
+              status: 'approved',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              updated_at: resolvedAt,
+            })
+            .eq('id', id);
+        }
+
+        if (targetStateCode) {
+          await supabase
+            .from('approval_requests')
+            .update({
+              status: 'approved',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              updated_at: resolvedAt,
+            })
+            .ilike('title', `%${targetStateCode}%`);
+        }
+      } catch (err) {
+        console.warn('[RequestsContext] Backend update for registration approval:', err);
+      }
+    }
+
+    return { success: true };
+  };
+
+  const rejectRegistration = async (
+    id: string,
+    reviewerName: string,
+    reason: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const targetReg = pendingRegistrations.find((r) => r.id === id);
+    if (!targetReg) return { success: false, error: 'Registration request not found' };
+
+    const resolvedAt = new Date().toISOString();
+    const targetStateCode = (targetReg.stateCode || (targetReg as any).state_code || '').trim();
+
+    setPendingRegistrations((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              status: 'rejected' as const,
+              reviewedBy: reviewerName,
+              reviewedAt: resolvedAt,
+              rejectionReason: reason,
+            }
+          : r
+      )
+    );
+
+    if (supabase) {
+      try {
+        if (id) {
+          await supabase
+            .from('pending_registrations')
+            .update({
+              status: 'rejected',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              rejection_reason: reason,
+              updated_at: resolvedAt,
+            })
+            .eq('id', id);
+        }
+
+        if (targetStateCode) {
+          await supabase
+            .from('pending_registrations')
+            .update({
+              status: 'rejected',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              rejection_reason: reason,
+              updated_at: resolvedAt,
+            })
+            .ilike('state_code', targetStateCode);
+        }
+
+        // Delete from pending table or update approval_requests
+        if (id) {
+          await supabase
+            .from('approval_requests')
+            .update({
+              status: 'rejected',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              reviewer_notes: reason,
+              updated_at: resolvedAt,
+            })
+            .eq('id', id);
+        }
+
+        if (targetStateCode) {
+          await supabase
+            .from('approval_requests')
+            .update({
+              status: 'rejected',
+              reviewed_by: reviewerName,
+              resolved_at: resolvedAt,
+              reviewer_notes: reason,
+              updated_at: resolvedAt,
+            })
+            .ilike('title', `%${targetStateCode}%`);
+        }
+      } catch (err) {
+        console.warn('[RequestsContext] Backend update for registration rejection:', err);
+      }
+    }
+
+    return { success: true };
+  };
+
   return (
     <RequestsContext.Provider
       value={{
         duesSubmissions,
         travelRequests,
         profileRequests,
+        pendingRegistrations,
         isLoadingRequests,
         addDuesSubmission,
         approveDuesSubmission,
@@ -1437,6 +1788,8 @@ const isValidUUID = (str?: string | null): boolean => {
         addProfileRequest,
         approveProfileRequest,
         rejectProfileRequest,
+        approveRegistration,
+        rejectRegistration,
         submitTravelPermit,
         approveRequest,
         rejectRequest,

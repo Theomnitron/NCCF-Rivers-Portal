@@ -5,6 +5,7 @@ import { seedMockUsers } from '../data/seedMockUsers';
 import { calculateTargets, formatTruncatedName } from '../utils/sanitizers';
 import { evaluateTier } from '../utils/tierEvaluator';
 import { supabase } from '../lib/supabase';
+import { getStoredPendingRegistrations } from '../types/registration';
 
 export interface AuthContextType {
   // Real Supabase Auth State
@@ -26,7 +27,7 @@ export interface AuthContextType {
   allUsers: CorperProfile[];
   setAllUsers: React.Dispatch<React.SetStateAction<CorperProfile[]>>;
   updateUserProfile: (id: string, updates: Partial<CorperProfile>) => void;
-  addSingleCorper: (newCorper: Partial<CorperProfile>) => CorperProfile;
+  addSingleCorper: (newCorper: Partial<CorperProfile>) => Promise<CorperProfile>;
   deleteCorperUser: (id: string) => void;
   resetToSeedData: () => void;
   isLoadingRoster: boolean;
@@ -84,9 +85,9 @@ export function mapDbRowToCorperProfile(row: any): CorperProfile {
     email: row.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@nccf-rivers.org`,
     phone: row.phone_number || row.phone || '08030000000',
     dateOfBirth: row.date_of_birth || row.dateOfBirth || '1999-05-12',
-    stateOfOrigin: row.state_of_origin || row.stateOfOrigin || 'Rivers',
-    courseOfStudy: row.course_of_study || row.courseOfStudy || 'Computer Science',
-    schoolGraduatedFrom: row.school_graduated_from || row.schoolGraduatedFrom || 'University of Port Harcourt',
+    stateOfOrigin: row.state_of_origin || row.stateOfOrigin || '',
+    courseOfStudy: row.course_of_study || row.courseOfStudy || '',
+    schoolGraduatedFrom: row.school_graduated_from || row.schoolGraduatedFrom || row.institution || '',
     maritalStatus: row.marital_status || row.maritalStatus || 'Not Engaged',
     houseStatus,
     executivePost: row.executive_post || row.executivePost || undefined,
@@ -119,12 +120,13 @@ export function mapDbRowToCorperProfile(row: any): CorperProfile {
 export function mapCorperProfileToDbRow(profile: Partial<CorperProfile>): Record<string, any> {
   const row: Record<string, any> = {};
 
-  // 1. Primary Keys & Foreign Keys (Only include if valid UUID)
+  // 1. Primary Keys & Foreign Keys
   if (profile.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profile.id)) {
     row.id = profile.id;
   }
-  if ((profile as any).userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test((profile as any).userId)) {
-    row.user_id = (profile as any).userId;
+  const uId = (profile as any).userId || (profile as any).user_id || profile.id;
+  if (uId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uId)) {
+    row.user_id = uId;
   }
 
   // 2. Personal Identification
@@ -133,22 +135,45 @@ export function mapCorperProfileToDbRow(profile: Partial<CorperProfile>): Record
   if (profile.lastName !== undefined) row.last_name = profile.lastName.trim();
   if (profile.stateCode !== undefined) row.state_code = profile.stateCode.trim().toUpperCase();
   if (profile.email !== undefined) row.email = profile.email.trim().toLowerCase();
-  if (profile.phone !== undefined) row.phone_number = profile.phone?.trim() || null;
-  if (profile.nextOfKinName !== undefined) row.next_of_kin_name = profile.nextOfKinName?.trim() || null;
-  if (profile.nextOfKinPhone !== undefined) row.next_of_kin_phone = profile.nextOfKinPhone?.trim() || null;
+  if (profile.phone !== undefined || (profile as any).phoneNumber !== undefined || (profile as any).phone_number !== undefined) {
+    row.phone_number = (profile.phone || (profile as any).phoneNumber || (profile as any).phone_number)?.trim() || null;
+  }
+  if (profile.nextOfKinName !== undefined || (profile as any).next_of_kin_name !== undefined) {
+    row.next_of_kin_name = (profile.nextOfKinName || (profile as any).next_of_kin_name)?.trim() || null;
+  }
+  if (profile.nextOfKinPhone !== undefined || (profile as any).next_of_kin_phone !== undefined) {
+    row.next_of_kin_phone = (profile.nextOfKinPhone || (profile as any).next_of_kin_phone)?.trim() || null;
+  }
   if (profile.gender !== undefined) row.gender = profile.gender;
-  if (profile.avatarUrl !== undefined) row.avatar_url = profile.avatarUrl?.trim() || null;
+  if (profile.avatarUrl !== undefined || (profile as any).avatar_url !== undefined) {
+    row.avatar_url = (profile.avatarUrl || (profile as any).avatar_url)?.trim() || null;
+  }
 
   // 3. Academic & Background
-  if (profile.dateOfBirth !== undefined) row.date_of_birth = profile.dateOfBirth?.trim() || null;
-  if (profile.stateOfOrigin !== undefined) row.state_of_origin = profile.stateOfOrigin?.trim() || null;
-  if (profile.courseOfStudy !== undefined) row.course_of_study = profile.courseOfStudy?.trim() || null;
-  if (profile.schoolGraduatedFrom !== undefined) row.school_graduated_from = profile.schoolGraduatedFrom?.trim() || null;
+  if (profile.dateOfBirth !== undefined || (profile as any).date_of_birth !== undefined) {
+    row.date_of_birth = (profile.dateOfBirth || (profile as any).date_of_birth)?.trim() || null;
+  }
+  if (profile.stateOfOrigin !== undefined || (profile as any).state_of_origin !== undefined) {
+    row.state_of_origin = (profile.stateOfOrigin || (profile as any).state_of_origin)?.trim() || null;
+  }
+  if (profile.courseOfStudy !== undefined || (profile as any).course_of_study !== undefined) {
+    row.course_of_study = (profile.courseOfStudy || (profile as any).course_of_study)?.trim() || null;
+  }
+  const schoolVal = profile.schoolGraduatedFrom || (profile as any).school_graduated_from || (profile as any).institution;
+  if (schoolVal !== undefined) {
+    row.school_graduated_from = schoolVal?.trim() || null;
+  }
 
   // 4. House & Governance Status
-  if (profile.maritalStatus !== undefined) row.marital_status = profile.maritalStatus;
-  if (profile.houseStatus !== undefined) row.house_status = profile.houseStatus;
-  if (profile.executivePost !== undefined) row.executive_post = profile.executivePost?.trim() || null;
+  if (profile.maritalStatus !== undefined || (profile as any).marital_status !== undefined) {
+    row.marital_status = profile.maritalStatus || (profile as any).marital_status;
+  }
+  if (profile.houseStatus !== undefined || (profile as any).house_status !== undefined) {
+    row.house_status = profile.houseStatus || (profile as any).house_status;
+  }
+  if (profile.executivePost !== undefined || (profile as any).executive_post !== undefined) {
+    row.executive_post = (profile.executivePost || (profile as any).executive_post)?.trim() || null;
+  }
 
   // 5. System Category (Check Constraint: 'member' | 'admin' | 'tripartite')
   if (profile.systemCategory !== undefined) {
@@ -387,13 +412,108 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setActiveUserState(null);
+      const cleanEmail = email.trim().toLowerCase();
+
+      // PRIOR-CHECK GUARD: Check if the user is in pending_registrations BEFORE hitting Supabase Auth!
+      // If the user's registration is still pending or rejected, stop immediately without attempting auth.
+      let pendingRecord: any = null;
+
+      if (supabase) {
+        try {
+          const { data: dbPending } = await supabase
+            .from('pending_registrations')
+            .select('id, email, state_code, first_name, last_name, status, rejection_reason, created_at')
+            .ilike('email', cleanEmail)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (dbPending) {
+            pendingRecord = dbPending;
+          }
+        } catch (e) {
+          // fallback
+        }
+
+        if (!pendingRecord) {
+          try {
+            const { data: appReq } = await supabase
+              .from('approval_requests')
+              .select('id, corper_id, request_type, request_category, status, reviewer_notes, payload, created_at')
+              .or('request_type.eq.member_registration,request_category.eq.member_registration')
+              .order('created_at', { ascending: false });
+
+            if (appReq && appReq.length > 0) {
+              const matched = appReq.find((r: any) => {
+                const pEmail = (r.payload?.email || '').toLowerCase();
+                return pEmail === cleanEmail;
+              });
+              if (matched) {
+                pendingRecord = {
+                  status: matched.status || 'pending',
+                  rejection_reason: matched.reviewer_notes || matched.payload?.rejectionReason || null,
+                };
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      }
+
+      if (!pendingRecord) {
+        const localPendingList = getStoredPendingRegistrations();
+        const matched = localPendingList.find((r) => r.email?.toLowerCase() === cleanEmail);
+        if (matched) {
+          pendingRecord = matched;
+        }
+      }
+
+      // If pending or rejected in pending_registrations, immediately return without contacting Supabase Auth
+      if (pendingRecord) {
+        const regStatus = (pendingRecord.status || 'pending').toLowerCase();
+        if (regStatus === 'pending') {
+          return {
+            data: null,
+            error: {
+              name: 'PendingRegistrationError',
+              isPendingReview: true,
+              message: 'Your registration application has been submitted and is currently under review by the NCCF Rivers State Management. You will be able to log in once your admission is approved.',
+            },
+          };
+        } else if (regStatus === 'rejected') {
+          const reason = pendingRecord.rejection_reason || pendingRecord.rejectionReason;
+          return {
+            data: null,
+            error: {
+              name: 'RejectedRegistrationError',
+              isRejected: true,
+              message: `Your registration application was declined. ${reason ? `Reason: ${reason}` : 'Please contact the NCCF Secretariat for more information.'}`,
+            },
+          };
+        }
+      }
+
+      // Proceed with Supabase Auth verification
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: cleanEmail,
         password,
       });
 
       if (!error && data?.user) {
         setUser(data.user);
+
+        // Auto-link user_id in corpers table if it was null
+        try {
+          await supabase
+            .from('corpers')
+            .update({ user_id: data.user.id })
+            .ilike('email', cleanEmail)
+            .is('user_id', null);
+        } catch (linkErr) {
+          // non-blocking
+        }
+
         const localMatch = allUsers.find(
           (u) => (data.user.id && u.userId === data.user.id) || (data.user.email && u.email?.toLowerCase() === data.user.email.toLowerCase())
         );
@@ -401,6 +521,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profile = await fetchCorperProfileForUser(data.user);
         if (profile) {
           setCorperProfile(profile);
+        }
+        return { data, error: null };
+      }
+
+      // If sign-in failed, check if this is an unclaimed Google Form roster import (user_id is null)
+      if (supabase && error) {
+        try {
+          const { data: unclaimedCorper } = await supabase
+            .from('corpers')
+            .select('id, user_id, email, state_code')
+            .ilike('email', cleanEmail)
+            .maybeSingle();
+
+          if (unclaimedCorper && !unclaimedCorper.user_id) {
+            return {
+              data: null,
+              error: {
+                name: 'UnclaimedAccountError',
+                isUnclaimed: true,
+                message: 'Your profile has been registered from the Google Form roster! Please switch to the "Claim Account" tab above to choose your password and activate your access.',
+              },
+            };
+          }
+        } catch (e) {
+          // ignore
         }
       }
 
@@ -435,10 +580,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
+      // If already claimed, attempt sign-in or advise sign-in
       if (existingCorper.user_id) {
+        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+          email: formattedEmail,
+          password,
+        });
+
+        if (!signInErr && signInData?.user) {
+          setUser(signInData.user);
+          const profile = await fetchCorperProfileForUser(signInData.user);
+          if (profile) setCorperProfile(profile);
+          return { data: { user: signInData.user, corper: profile || existingCorper }, error: null };
+        }
+
         return {
           data: null,
-          error: new Error('This corps member account has already been claimed and activated. Please sign in instead.'),
+          error: new Error('This corps member account has already been claimed and activated. Please sign in with your email and password, or use Forgot Password if needed.'),
         };
       }
 
@@ -448,7 +606,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
+      // If user already exists in auth.users (e.g. from registration wizard), attempt sign-in and link user_id
       if (signUpError) {
+        const msg = (signUpError.message || '').toLowerCase();
+        if (msg.includes('already registered') || msg.includes('user already exists') || (signUpError as any).status === 422) {
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+            email: formattedEmail,
+            password,
+          });
+
+          if (!signInErr && signInData?.user) {
+            setUser(signInData.user);
+            await supabase
+              .from('corpers')
+              .update({ user_id: signInData.user.id })
+              .eq('id', existingCorper.id);
+
+            const profile = await fetchCorperProfileForUser(signInData.user);
+            if (profile) setCorperProfile(profile);
+            return { data: { user: signInData.user, corper: profile || existingCorper }, error: null };
+          } else {
+            return {
+              data: null,
+              error: new Error('An account with this email already exists. If this is your account, please sign in or use the Forgot Password link to reset your password.'),
+            };
+          }
+        }
+
         return { data: null, error: signUpError };
       }
 
@@ -673,49 +857,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addSingleCorper = (newCorper: Partial<CorperProfile>): CorperProfile => {
-    const firstName = newCorper.firstName || 'Corper';
-    const middleName = newCorper.middleName;
-    const lastName = newCorper.lastName || 'Member';
+  const addSingleCorper = async (newCorper: Partial<CorperProfile>): Promise<CorperProfile> => {
+    const firstName = newCorper.firstName || (newCorper as any).first_name || 'Corper';
+    const middleName = newCorper.middleName || (newCorper as any).middle_name;
+    const lastName = newCorper.lastName || (newCorper as any).last_name || 'Member';
     const displayName = formatTruncatedName(firstName, lastName);
     const id = (newCorper.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(newCorper.id))
       ? newCorper.id
       : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-4000-a000-000000000000');
+    const userId = (newCorper as any).userId || (newCorper as any).user_id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id : undefined);
 
-    const serviceUnitsList: string[] = newCorper.serviceUnits ||
-      (newCorper.serviceUnit ? newCorper.serviceUnit.split(',').map(s => s.trim()).filter(Boolean) : ['Bible Study']);
-    const serviceUnitStr = newCorper.serviceUnit || serviceUnitsList.join(', ') || 'Bible Study';
+    const serviceUnitsList: string[] = newCorper.serviceUnits || (newCorper as any).service_units ||
+      (newCorper.serviceUnit ? newCorper.serviceUnit.split(',').map(s => s.trim()).filter(Boolean) : []);
+    const serviceUnitStr = newCorper.serviceUnit || (Array.isArray(serviceUnitsList) && serviceUnitsList.length > 0 ? serviceUnitsList.join(', ') : '');
 
     const systemCategory = newCorper.systemCategory || 'member';
     const isTripartite = newCorper.hasTripartitePrivileges ?? (systemCategory === 'admin' || systemCategory === 'tripartite');
     const isExempted = Boolean(newCorper.isExempted);
     const privileges = newCorper.privileges || { tripartite_access: isTripartite, is_exempted: isExempted };
 
+    const schoolGraduatedFrom =
+      newCorper.schoolGraduatedFrom ||
+      (newCorper as any).school_graduated_from ||
+      (newCorper as any).institution ||
+      '';
+
     const rawProfile: CorperProfile = {
       id,
+      userId: (newCorper as any).userId || (newCorper as any).user_id,
       firstName,
       middleName,
       lastName,
       displayName,
-      gender: newCorper.gender || 'M',
-      stateCode: (newCorper.stateCode || 'RV/26A/0000').toUpperCase(),
+      gender: newCorper.gender || (newCorper as any).gender || 'M',
+      stateCode: (newCorper.stateCode || (newCorper as any).state_code || 'RV/26A/0000').toUpperCase(),
       email: newCorper.email || `${firstName.toLowerCase()}.${lastName.toLowerCase()}@nccf-rivers.org`,
-      phone: newCorper.phone || '08030000000',
-      dateOfBirth: newCorper.dateOfBirth || '1999-05-12',
-      stateOfOrigin: newCorper.stateOfOrigin || 'Rivers',
-      courseOfStudy: newCorper.courseOfStudy || 'Computer Science',
-      schoolGraduatedFrom: newCorper.schoolGraduatedFrom || 'University of Port Harcourt',
-      maritalStatus: newCorper.maritalStatus || 'Not Engaged',
-      houseStatus: newCorper.houseStatus || 'Member',
-      executivePost: newCorper.executivePost,
-      roomName: newCorper.roomName || 'Timothy',
+      phone: newCorper.phone || (newCorper as any).phoneNumber || (newCorper as any).phone_number || '08030000000',
+      dateOfBirth: newCorper.dateOfBirth || (newCorper as any).date_of_birth || '1999-05-12',
+      stateOfOrigin: newCorper.stateOfOrigin || (newCorper as any).state_of_origin || '',
+      courseOfStudy: newCorper.courseOfStudy || (newCorper as any).course_of_study || '',
+      schoolGraduatedFrom,
+      maritalStatus: newCorper.maritalStatus || (newCorper as any).marital_status || 'Not Engaged',
+      houseStatus: newCorper.houseStatus || (newCorper as any).house_status || 'Member',
+      executivePost: newCorper.executivePost || (newCorper as any).executive_post,
+      roomName: newCorper.roomName || (newCorper as any).room_name || 'Timothy',
       serviceUnit: serviceUnitStr,
       serviceUnits: serviceUnitsList,
       systemCategory,
       systemAccessCategory: systemCategory,
-      presence: newCorper.presence || 'Present',
-      nextOfKinName: newCorper.nextOfKinName?.trim() || undefined,
-      nextOfKinPhone: newCorper.nextOfKinPhone?.trim() || undefined,
+      presence: newCorper.presence || (newCorper as any).presence || 'Present',
+      nextOfKinName: (newCorper.nextOfKinName || (newCorper as any).next_of_kin_name)?.trim() || undefined,
+      nextOfKinPhone: (newCorper.nextOfKinPhone || (newCorper as any).next_of_kin_phone)?.trim() || undefined,
       privileges,
       hasTripartitePrivileges: isTripartite,
       isExempted,
@@ -723,6 +915,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       targets: { maintenance: 15000, feeding: 10000 },
       avatarUrl:
         newCorper.avatarUrl ||
+        (newCorper as any).avatar_url ||
         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
     };
 
@@ -730,19 +923,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const tierInfo = evaluateTier(rawProfile);
     rawProfile.tier = tierInfo.tier;
 
-    setAllUsers((prev) => [rawProfile, ...prev]);
+    setAllUsers((prev) => [rawProfile, ...prev.filter(u => u.stateCode.toUpperCase() !== rawProfile.stateCode.toUpperCase())]);
 
     const dbRow = mapCorperProfileToDbRow(rawProfile);
-    (async () => {
+    if (supabase) {
       try {
-        const { error } = await supabase.from('corpers').insert(dbRow);
+        const payloadToInsert: Record<string, any> = {
+          ...dbRow,
+          id,
+          updated_at: new Date().toISOString(),
+        };
+
+        const { error } = await supabase.from('corpers').upsert(payloadToInsert, { onConflict: 'state_code' });
         if (error) {
-          console.warn('[Supabase AuthContext] Error inserting corper profile:', error.message);
+          console.warn('[Supabase AuthContext] Upsert attempt notice:', error.message);
+          // If foreign key constraint failed on user_id, strip user_id and retry
+          if (payloadToInsert.user_id) {
+            delete payloadToInsert.user_id;
+            const { error: retryErr } = await supabase.from('corpers').upsert(payloadToInsert, { onConflict: 'state_code' });
+            if (retryErr) {
+              console.warn('[Supabase AuthContext] Retry upsert notice:', retryErr.message);
+            }
+          }
         }
       } catch (err) {
         console.warn('[Supabase AuthContext] Exception inserting corper profile:', err);
       }
-    })();
+    }
 
     return rawProfile;
   };

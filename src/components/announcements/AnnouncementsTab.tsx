@@ -5,7 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { hasTripartiteAccess } from '../../types/corper';
 import { processClientSideFile } from '../../utils/fileProcessor';
 import { uploadFileToStorage } from '../../utils/storage';
-import { formatEventSchedule, formatAnnouncementDisplayDate } from '../../utils/dateFormatter';
+import { formatEventSchedule, formatAnnouncementDisplayDate, sortAnnouncementsByNoticePriority } from '../../utils/dateFormatter';
 import { RegularServicesModal } from './RegularServicesModal';
 import { RevealOnScroll } from '../common/RevealOnScroll';
 import {
@@ -82,7 +82,12 @@ export const AnnouncementsTab: React.FC = () => {
   // Active vs Expired filtering
   const activeNotices = announcements.filter((a) => a.expirationDate >= todayStr);
   const expiredNotices = announcements.filter((a) => a.expirationDate < todayStr);
-  const displayedNotices = showExpired ? announcements : activeNotices;
+
+  // Priority sorting: Undated first (supersedes dated), then earliest event date first (e.g. Sept 2 before Sept 5)
+  const displayedNotices = useMemo(() => {
+    const baseList = showExpired ? announcements : activeNotices;
+    return sortAnnouncementsByNoticePriority(baseList);
+  }, [showExpired, announcements, activeNotices]);
 
   // Computed Live Formatted Event Date
   const computedEventDate = useMemo(() => {

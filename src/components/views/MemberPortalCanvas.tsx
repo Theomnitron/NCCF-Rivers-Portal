@@ -4,6 +4,7 @@ import { useRequests } from '../../context/RequestsContext';
 import { evaluateTier } from '../../utils/tierEvaluator';
 import { isValidStateCode } from '../../utils/sanitizers';
 import { shouldDisplayUnit, formatServiceUnitText } from '../../utils/unitHelpers';
+import { getCurrentActiveLedgerMonth } from '../../utils/duesCalculator';
 import { SubscriptionHub } from '../financial/SubscriptionHub';
 import { ReceiptUploadModal } from '../financial/ReceiptUploadModal';
 import { MonthDetailsModal } from '../financial/MonthDetailsModal';
@@ -35,9 +36,10 @@ export const MemberPortalCanvas: React.FC<{ currentTab?: string }> = ({ currentT
     return getLiveUserLedger(activeUser, duesSubmissions);
   }, [activeUser, duesSubmissions]);
 
-  const [selectedMonthKey, setSelectedMonthKey] = useState<string>('AUG-2026');
+  const activeMonthInfo = getCurrentActiveLedgerMonth();
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>(activeMonthInfo.monthKey);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadModalInitialMonth, setUploadModalInitialMonth] = useState<string>('AUG');
+  const [uploadModalInitialMonth, setUploadModalInitialMonth] = useState<string>(activeMonthInfo.monthCode);
   const [selectedMonthEntryForModal, setSelectedMonthEntryForModal] = useState<MonthLedgerEntry | null>(null);
   const [isMonthDetailsModalOpen, setIsMonthDetailsModalOpen] = useState(false);
 
@@ -45,7 +47,7 @@ export const MemberPortalCanvas: React.FC<{ currentTab?: string }> = ({ currentT
     ledgerEntries.find(
       (e) => `${e.monthKey}-${e.year}` === selectedMonthKey || e.monthKey === selectedMonthKey
     ) ||
-    ledgerEntries.find((e) => e.monthKey === 'AUG' && e.year === 2026) ||
+    ledgerEntries.find((e) => e.monthKey === activeMonthInfo.monthCode && e.year === activeMonthInfo.year) ||
     ledgerEntries[0];
 
   const handleOpenUploadModal = (monthKey?: string) => {

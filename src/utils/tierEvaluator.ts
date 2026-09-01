@@ -107,11 +107,9 @@ export function getShortRoleTitle(profile: Partial<CorperProfile>, tierInfo?: Ti
 export function getCodedPostTitle(profile: Partial<CorperProfile>): string {
   if (profile.systemCategory === 'admin') return 'ADMIN';
 
-  // Check executivePost first if provided (regardless of houseStatus) or if houseStatus is Executive / Tripartite
-  if (profile.executivePost && profile.executivePost.trim()) {
-    const rawEp = profile.executivePost.trim();
-
-    // Rule 1: Always extract bracketed title if present, e.g. "Assistant General Secretary (Aunty)" -> "AUNTY"
+  // Helper to extract or derive concise slogan from executivePost string
+  const resolveSlogan = (rawEp: string): string => {
+    // Rule 1: Always extract bracketed title if present, e.g. "Drama Director (DD)" -> "DD"
     const bracketMatch = rawEp.match(/\(([^)]+)\)/);
     if (bracketMatch && bracketMatch[1] && bracketMatch[1].trim()) {
       return bracketMatch[1].trim().toUpperCase();
@@ -152,11 +150,24 @@ export function getCodedPostTitle(profile: Partial<CorperProfile>): string {
     if (ep.includes('ADMIN') || ep.includes('TECH')) return 'ADMIN';
 
     return ep.length > 12 ? ep.substring(0, 12) : ep;
+  };
+
+  // If houseStatus is Gee, combine 'GEE' with slogan if post exists
+  if (profile.houseStatus === 'Gee') {
+    if (profile.executivePost && profile.executivePost.trim() && profile.executivePost !== 'None' && profile.executivePost !== 'Member') {
+      const slogan = resolveSlogan(profile.executivePost.trim());
+      return `GEE ${slogan}`;
+    }
+    return 'GEE';
+  }
+
+  // Check executivePost for other statuses
+  if (profile.executivePost && profile.executivePost.trim() && profile.executivePost !== 'None' && profile.executivePost !== 'Member') {
+    return resolveSlogan(profile.executivePost.trim());
   }
 
   if (profile.houseStatus === 'Executive') return 'EXECUTIVE';
   if (profile.systemCategory === 'tripartite' || profile.houseStatus === 'Tripartite') return 'TRIPARTITE';
-  if (profile.houseStatus === 'Gee') return 'GEE';
   if (profile.houseStatus === 'Delegate') return 'DELEGATE';
   if (profile.houseStatus === 'Room Gov' || profile.houseStatus === 'Governor') return 'ROOM GOV';
 

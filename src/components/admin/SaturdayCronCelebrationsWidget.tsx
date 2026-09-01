@@ -14,26 +14,17 @@ export const SaturdayCronCelebrationsWidget: React.FC = () => {
     birthdaysFound: number;
   } | null>(null);
 
-  // Target Week Calculation (Sunday 00:00:00 to Saturday 23:59:59)
+  // Target 7-Day Window Calculation ([today, today+6])
   const upcomingBirthdays = useMemo(() => {
     const today = new Date();
-    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
-    // Target upcoming Sunday (if today is Sunday, start today; if Saturday, start tomorrow)
-    const sundayOffset = (7 - currentDay) % 7;
-    const targetSunday = new Date(today);
-    targetSunday.setDate(today.getDate() + (currentDay === 0 ? 0 : sundayOffset));
-    targetSunday.setHours(0, 0, 0, 0);
-
-    const targetSaturday = new Date(targetSunday);
-    targetSaturday.setDate(targetSunday.getDate() + 6);
-    targetSaturday.setHours(23, 59, 59, 999);
+    today.setHours(0, 0, 0, 0);
 
     const matches: Array<{
       user: CorperProfile;
       birthdayDate: Date;
       formattedDate: string;
       isExactMatch: boolean;
+      daysAway: number;
     }> = [];
 
     allUsers.forEach((user) => {
@@ -43,10 +34,10 @@ export const SaturdayCronCelebrationsWidget: React.FC = () => {
       const month = parseInt(parts[1], 10) - 1; // 0-indexed
       const day = parseInt(parts[2], 10);
 
-      // Check each day of the Sunday-to-Saturday window
+      // Check each of the 7 days in the [today, today+6] window
       for (let i = 0; i < 7; i++) {
-        const testDate = new Date(targetSunday);
-        testDate.setDate(targetSunday.getDate() + i);
+        const testDate = new Date(today);
+        testDate.setDate(today.getDate() + i);
         if (testDate.getMonth() === month && testDate.getDate() === day) {
           const dayName = testDate.toLocaleDateString('en-US', { weekday: 'long' });
           const monthName = testDate.toLocaleDateString('en-US', { month: 'short' });
@@ -54,8 +45,9 @@ export const SaturdayCronCelebrationsWidget: React.FC = () => {
           matches.push({
             user,
             birthdayDate: testDate,
-            formattedDate: `${dayName}, ${monthName} ${dayNum}`,
+            formattedDate: i === 0 ? `Today (${dayName}, ${monthName} ${dayNum})` : i === 1 ? `Tomorrow (${dayName}, ${monthName} ${dayNum})` : `${dayName}, ${monthName} ${dayNum}`,
             isExactMatch: true,
+            daysAway: i,
           });
           break;
         }
@@ -107,7 +99,7 @@ export const SaturdayCronCelebrationsWidget: React.FC = () => {
           </div>
 
           <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed mb-4">
-            Every Saturday at 11:59 PM (UTC+1), the system automatically scans for the Birthdays that fall into the coming week (Sunday – Saturday).
+            The system automatically scans for corpers celebrating their birthdays within the rolling 7-day window (today through the next 6 days).
           </p>
 
           {cronResult && (
@@ -170,7 +162,7 @@ export const SaturdayCronCelebrationsWidget: React.FC = () => {
           <div className="space-y-3.5 max-h-[440px] overflow-y-auto pr-1">
             {upcomingBirthdays.length === 0 ? (
               <div className="p-8 text-center text-xs font-mono text-zinc-500 dark:text-zinc-400 bg-slate-900/5 dark:bg-black/40 rounded-xl border border-dashed border-slate-900/10 dark:border-white/10">
-                No birthdays in the coming Sunday–Saturday week.
+                No birthdays within the next 7 days.
               </div>
             ) : (
               upcomingBirthdays.map(({ user, formattedDate }) => {

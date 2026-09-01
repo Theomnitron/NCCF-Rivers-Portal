@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CorperProfile } from '../../types/corper';
 import { PaymentType } from '../../types/ledger';
+import { getCurrentActiveLedgerMonth } from '../../utils/duesCalculator';
 import {
   X,
   Upload,
@@ -63,18 +64,20 @@ export const ReceiptUploadModal: React.FC<ReceiptUploadModalProps> = ({
   isOpen,
   onClose,
   activeUser,
-  initialMonthKey = 'AUG',
+  initialMonthKey,
   onUploadSuccess,
 }) => {
-  const initialFullKey = initialMonthKey.includes('-')
-    ? initialMonthKey
-    : `${initialMonthKey}-2026`;
+  const activeMonthInfo = getCurrentActiveLedgerMonth();
+  const effectiveMonthKey = initialMonthKey || activeMonthInfo.monthKey;
+  const initialFullKey = effectiveMonthKey.includes('-')
+    ? effectiveMonthKey
+    : `${effectiveMonthKey}-${activeMonthInfo.year}`;
 
   const [selectedMonthKey, setSelectedMonthKey] = useState(initialFullKey);
   const [paymentType, setPaymentType] = useState<PaymentType>('combined');
   const [customAmount, setCustomAmount] = useState<string>('');
   const [transactionId, setTransactionId] = useState<string>(
-    `TXN-2026-${initialMonthKey.split('-')[0]}-${Math.floor(1000 + Math.random() * 9000)}`
+    `TXN-${activeMonthInfo.year}-${effectiveMonthKey.split('-')[0]}-${Math.floor(1000 + Math.random() * 9000)}`
   );
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);

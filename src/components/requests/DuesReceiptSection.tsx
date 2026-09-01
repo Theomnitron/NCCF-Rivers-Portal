@@ -41,16 +41,22 @@ export const DuesReceiptSection: React.FC = () => {
   const { showToast } = useToast();
 
   const [subType, setSubType] = useState<PaymentType>('combined');
-  const [targetMonth, setTargetMonth] = useState<string>('2026-08'); // YYYY-MM format
+  const [targetMonth, setTargetMonth] = useState<string>(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }); // YYYY-MM format
 
   // Calculate month values from targetMonth YYYY-MM
   const [yearStr, monthNumStr] = targetMonth.split('-');
-  const year = parseInt(yearStr, 10) || 2026;
-  const monthIdx = (parseInt(monthNumStr, 10) || 8) - 1;
+  const now = new Date();
+  const year = parseInt(yearStr, 10) || now.getFullYear();
+  const monthIdx = (parseInt(monthNumStr, 10) || (now.getMonth() + 1)) - 1;
   const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const MONTH_CODES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-  const monthName = MONTH_NAMES[monthIdx] || 'August';
-  const monthCode = MONTH_CODES[monthIdx] || 'AUG';
+  const monthName = MONTH_NAMES[monthIdx] || MONTH_NAMES[now.getMonth()];
+  const monthCode = MONTH_CODES[monthIdx] || MONTH_CODES[now.getMonth()];
   const monthKey = `${monthCode}-${year}`;
 
   // Role-based exemption & Gee status checks

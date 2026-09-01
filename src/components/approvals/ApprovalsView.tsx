@@ -10,6 +10,7 @@ import {
   TravelRequestSubmission,
   ProfileChangeRequestSubmission,
 } from '../../context/RequestsContext';
+import { PendingRegistration } from '../../types/registration';
 import { evaluateTier } from '../../utils/tierEvaluator';
 import {
   ShieldCheck,
@@ -27,24 +28,39 @@ import {
   Sparkles,
   Check,
   UserCheck,
+  UserPlus,
+  Phone,
+  Mail,
+  GraduationCap,
+  Building,
+  Home,
+  CheckCheck,
+  ChevronDown,
+  ChevronUp,
+  HeartPulse,
+  PhoneCall,
 } from 'lucide-react';
 
 export const ApprovalsView: React.FC = () => {
-  const { activeUser, updateUserProfile } = useAuth();
+  const { activeUser, updateUserProfile, addSingleCorper } = useAuth();
   const { showToast } = useToast();
   const {
     duesSubmissions,
     travelRequests,
     profileRequests,
+    pendingRegistrations,
     approveDuesSubmission,
     rejectDuesSubmission,
     approveTravelRequest,
     rejectTravelRequest,
     approveProfileRequest,
     rejectProfileRequest,
+    approveRegistration,
+    rejectRegistration,
   } = useRequests();
 
-  const [activeSubTab, setActiveSubTab] = useState<'dues' | 'travel' | 'profile'>('dues');
+  const [activeSubTab, setActiveSubTab] = useState<'dues' | 'travel' | 'profile' | 'registrations'>('dues');
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
   // Preview Modal State for Receipts/Documents
   const [previewItem, setPreviewItem] = useState<{
@@ -54,6 +70,9 @@ export const ApprovalsView: React.FC = () => {
     fileType?: string;
     details: string;
   } | null>(null);
+
+  // Full Details Modal for Pending Registrations
+  const [selectedReg, setSelectedReg] = useState<PendingRegistration | null>(null);
 
   // Modify & Approve Modal State for Dues
   const [modifyDuesItem, setModifyDuesItem] = useState<DuesReceiptSubmission | null>(null);
@@ -65,7 +84,7 @@ export const ApprovalsView: React.FC = () => {
   const [overrideRetDate, setOverrideRetDate] = useState('');
 
   // Reject Prompt Modal State
-  const [rejectingItem, setRejectingItem] = useState<{ id: string; type: 'dues' | 'travel' | 'profile'; name: string } | null>(
+  const [rejectingItem, setRejectingItem] = useState<{ id: string; type: 'dues' | 'travel' | 'profile' | 'registration'; name: string } | null>(
     null
   );
   const [rejectionReasonText, setRejectionReasonText] = useState('');
@@ -149,8 +168,23 @@ export const ApprovalsView: React.FC = () => {
     showToast(`Approved profile update for ${req.userName}`, 'success');
   };
 
+  // Handlers for Registration Requests
+  const handleApproveRegistration = async (reg: PendingRegistration) => {
+    const res = await approveRegistration(reg.id, reviewerName, addSingleCorper);
+    const regName = reg.fullName || `${reg.first_name || ''} ${reg.last_name || ''}`.trim();
+    const regCode = reg.state_code || reg.stateCode || '';
+    if (res.success) {
+      showToast(`Admitted ${regName} (${regCode}) into Family House Portal!`, 'success');
+      if (selectedReg?.id === reg.id) {
+        setSelectedReg(null);
+      }
+    } else {
+      showToast(`Approval failed: ${res.error || 'Unknown error'}`, 'error');
+    }
+  };
+
   // Handler for Reject
-  const handleConfirmReject = (e: React.FormEvent) => {
+  const handleConfirmReject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rejectingItem) return;
     const reason = rejectionReasonText.trim() || 'Submission rejected by governance stewards.';
@@ -164,6 +198,12 @@ export const ApprovalsView: React.FC = () => {
     } else if (rejectingItem.type === 'profile') {
       rejectProfileRequest(rejectingItem.id, reviewerName, reason);
       showToast(`Rejected profile request for ${rejectingItem.name}`, 'info');
+    } else if (rejectingItem.type === 'registration') {
+      await rejectRegistration(rejectingItem.id, reviewerName, reason);
+      showToast(`Declined registration for ${rejectingItem.name}`, 'info');
+      if (selectedReg?.id === rejectingItem.id) {
+        setSelectedReg(null);
+      }
     }
 
     setRejectingItem(null);
@@ -178,6 +218,9 @@ export const ApprovalsView: React.FC = () => {
 
   const pendingProfile = profileRequests.filter((p) => p.status === 'pending');
   const processedProfile = profileRequests.filter((p) => p.status !== 'pending');
+
+  const pendingRegs = (pendingRegistrations || []).filter((r) => r.status === 'pending');
+  const processedRegs = (pendingRegistrations || []).filter((r) => r.status !== 'pending');
 
   return (
     <div className="space-y-6">
@@ -200,71 +243,152 @@ export const ApprovalsView: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-0.5">
-                  Evaluate member dues clearance proofs, travel exeat permits, & profile modification requests.
+                  Evaluate member dues clearance proofs, travel exeat permits, profile modifications, & portal admissions.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start sm:items-center space-x-2 font-mono text-xs">
               <span className="px-3 py-1.5 whitespace-nowrap shrink-0 rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-500/20 font-bold">
-                {pendingDues.length + pendingTravel.length + pendingProfile.length} PENDING APPROVAL
+                {pendingDues.length + pendingTravel.length + pendingProfile.length + pendingRegs.length} PENDING APPROVAL
               </span>
             </div>
           </div>
         </div>
       </RevealOnScroll>
 
-      {/* Segmented Control Bar */}
-      <RevealOnScroll delay={0.1}>
-        <div className="bg-white/70 dark:bg-zinc-950/70 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-md rounded-2xl p-1.5 sm:p-3 transition-all duration-200">
-          <div className="grid grid-cols-3 gap-1 sm:gap-2 items-center">
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('dues')}
-              className={`w-full py-2 sm:py-2.5 px-1 sm:px-3.5 rounded-xl text-[11px] sm:text-sm font-bold flex items-center justify-center space-x-1 sm:space-x-2 transition-all cursor-pointer min-h-[44px] ${
-                activeSubTab === 'dues'
-                  ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5'
-              }`}
-            >
-              <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-emerald-500" />
-              <span className="truncate text-center">
-                <span className="inline sm:hidden">Dues ({pendingDues.length})</span>
-                <span className="hidden sm:inline">Dues Receipts ({pendingDues.length})</span>
-              </span>
-            </button>
+      {/* Space-Saving Category Selector */}
+      <RevealOnScroll delay={0.1} className="relative z-40">
+        <div className="relative z-40">
+          <div className="bg-white/70 dark:bg-zinc-950/70 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-md rounded-2xl p-2 sm:p-2.5 flex items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <button
+                type="button"
+                onClick={() => setIsSelectorOpen(!isSelectorOpen)}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-900/5 dark:bg-white/5 hover:bg-slate-900/10 dark:hover:bg-white/10 border border-slate-900/10 dark:border-white/10 transition-all cursor-pointer min-h-[44px]"
+                aria-expanded={isSelectorOpen}
+              >
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <span className="p-1.5 rounded-lg bg-white dark:bg-zinc-900 shadow-xs shrink-0">
+                    {activeSubTab === 'dues' && <Coins className="w-4 h-4 text-emerald-500" />}
+                    {activeSubTab === 'travel' && <Plane className="w-4 h-4 text-sky-500" />}
+                    {activeSubTab === 'profile' && <UserCheck className="w-4 h-4 text-indigo-500" />}
+                    {activeSubTab === 'registrations' && <UserPlus className="w-4 h-4 text-amber-500" />}
+                  </span>
+                  <div className="text-left min-w-0">
+                    <span className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider">Approval Category</span>
+                    <span className="font-bold text-xs sm:text-sm text-zinc-900 dark:text-white truncate block">
+                      {activeSubTab === 'dues' && 'Dues Clearance Proofs'}
+                      {activeSubTab === 'travel' && 'Travel Exeat Permits'}
+                      {activeSubTab === 'profile' && 'Profile Modification Requests'}
+                      {activeSubTab === 'registrations' && 'Portal Admission Registrations'}
+                    </span>
+                  </div>
+                </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('travel')}
-              className={`w-full py-2 sm:py-2.5 px-1 sm:px-3.5 rounded-xl text-[11px] sm:text-sm font-bold flex items-center justify-center space-x-1 sm:space-x-2 transition-all cursor-pointer min-h-[44px] ${
-                activeSubTab === 'travel'
-                  ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5'
-              }`}
-            >
-              <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-sky-500" />
-              <span className="truncate text-center">
-                <span className="inline sm:hidden">Travel ({pendingTravel.length})</span>
-                <span className="hidden sm:inline">Travel Permits ({pendingTravel.length})</span>
-              </span>
-            </button>
+                <div className="flex items-center space-x-2 shrink-0 ml-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    {activeSubTab === 'dues' && `${pendingDues.length} Pending`}
+                    {activeSubTab === 'travel' && `${pendingTravel.length} Pending`}
+                    {activeSubTab === 'profile' && `${pendingProfile.length} Pending`}
+                    {activeSubTab === 'registrations' && `${pendingRegs.length} Pending`}
+                  </span>
+                  {isSelectorOpen ? (
+                    <ChevronUp className="w-4 h-4 text-zinc-500 shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+                  )}
+                </div>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('profile')}
-              className={`w-full py-2 sm:py-2.5 px-1 sm:px-3.5 rounded-xl text-[11px] sm:text-sm font-bold flex items-center justify-center space-x-1 sm:space-x-2 transition-all cursor-pointer min-h-[44px] ${
-                activeSubTab === 'profile'
-                  ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5'
-              }`}
-            >
-              <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-amber-500" />
-              <span className="truncate text-center">
-                <span className="inline sm:hidden">Profile ({pendingProfile.length})</span>
-                <span className="hidden sm:inline">Profile Requests ({pendingProfile.length})</span>
-              </span>
-            </button>
+              {/* Floating Dropdown Menu */}
+              {isSelectorOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsSelectorOpen(false)}
+                  />
+                  <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl p-2 space-y-1 animate-fadeIn">
+                    {[
+                      {
+                        id: 'dues',
+                        title: 'Dues Clearance Proofs',
+                        desc: 'Review bank receipts and monthly dues settlements',
+                        count: pendingDues.length,
+                        icon: Coins,
+                        iconColor: 'text-emerald-500',
+                      },
+                      {
+                        id: 'travel',
+                        title: 'Travel Exeat Permits',
+                        desc: 'Evaluate travel departure and return date permits',
+                        count: pendingTravel.length,
+                        icon: Plane,
+                        iconColor: 'text-sky-500',
+                      },
+                      {
+                        id: 'profile',
+                        title: 'Profile Modifications',
+                        desc: 'Review requests to edit corper details or contact info',
+                        count: pendingProfile.length,
+                        icon: UserCheck,
+                        iconColor: 'text-indigo-500',
+                      },
+                      {
+                        id: 'registrations',
+                        title: 'Portal Admission Registrations',
+                        desc: 'Review new registration wizard signups and admit corpers',
+                        count: pendingRegs.length,
+                        icon: UserPlus,
+                        iconColor: 'text-amber-500',
+                      },
+                    ].map((item) => {
+                      const IconComp = item.icon;
+                      const isSelected = activeSubTab === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveSubTab(item.id as any);
+                            setIsSelectorOpen(false);
+                          }}
+                          className={`w-full p-2.5 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold shadow-md'
+                              : 'hover:bg-slate-900/5 dark:hover:bg-white/5 text-zinc-700 dark:text-zinc-300'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <span className={`p-2 rounded-lg ${isSelected ? 'bg-white/10 dark:bg-zinc-900/10' : 'bg-slate-900/5 dark:bg-white/5'}`}>
+                              <IconComp className={`w-4 h-4 ${isSelected ? 'text-current' : item.iconColor}`} />
+                            </span>
+                            <div className="min-w-0">
+                              <span className="text-xs sm:text-sm font-bold block truncate">{item.title}</span>
+                              <span className={`text-[10px] block truncate ${isSelected ? 'opacity-80' : 'text-zinc-400'}`}>
+                                {item.desc}
+                              </span>
+                            </div>
+                          </div>
+
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 ml-2 ${
+                              isSelected
+                                ? 'bg-white/20 text-white dark:bg-zinc-900/20 dark:text-zinc-900'
+                                : item.count > 0
+                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                                : 'bg-slate-100 dark:bg-zinc-800 text-zinc-400'
+                            }`}
+                          >
+                            {item.count} Pending
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </RevealOnScroll>
@@ -786,6 +910,444 @@ export const ApprovalsView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* SUB-TAB 4: ADMISSION REGISTRATIONS */}
+      {activeSubTab === 'registrations' && (
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>Pending Portal Admission Requests ({pendingRegs.length})</span>
+            </h3>
+
+            {pendingRegs.length === 0 ? (
+              <div className="bg-white/50 backdrop-blur-xl border border-white/80 dark:bg-zinc-950/60 dark:border-white/10 rounded-2xl p-8 text-center text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm">
+                No pending admission registrations in queue. All applicants have been reviewed!
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {pendingRegs.map((reg) => {
+                  const regFullName = reg.fullName || `${reg.first_name || reg.firstName || ''} ${reg.middle_name || reg.middleName ? (reg.middle_name || reg.middleName) + ' ' : ''}${reg.last_name || reg.lastName || ''}`.trim();
+                  const regStateCode = reg.state_code || reg.stateCode || 'N/A';
+                  const regGender = reg.gender || 'N/A';
+                  const regOrigin = reg.state_of_origin || reg.stateOfOrigin || 'N/A';
+                  const regCourse = reg.course_of_study || reg.courseOfStudy || 'N/A';
+                  const regSchool = reg.school_graduated_from || reg.schoolGraduatedFrom || 'N/A';
+                  const regMarital = reg.marital_status || reg.maritalStatus || 'Single';
+                  const regAvatar = reg.avatar_url || reg.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150';
+
+                  return (
+                    <div
+                      key={reg.id}
+                      className="bg-white/70 backdrop-blur-xl border border-slate-200/90 dark:bg-zinc-950/80 dark:border-white/15 shadow-lg rounded-2xl p-4 sm:p-5 space-y-4 flex flex-col justify-between hover:border-amber-500/40 transition-all"
+                    >
+                      {/* Top Header: Avatar on left, Full Name & underneath State Code + Gender, NEW badge on right */}
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <img
+                              src={regAvatar}
+                              alt={regFullName}
+                              className="w-12 h-12 sm:w-13 sm:h-13 rounded-full object-cover border-2 border-amber-500 shrink-0 shadow-md aspect-square"
+                            />
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-sm sm:text-base text-zinc-900 dark:text-white truncate">
+                                {regFullName}
+                              </h4>
+                              <div className="flex items-center space-x-1.5 mt-0.5 font-mono text-xs">
+                                <span className="font-bold text-blue-600 dark:text-blue-400">
+                                  {regStateCode}
+                                </span>
+                                <span className="text-zinc-400 dark:text-zinc-600">•</span>
+                                <span className="text-zinc-600 dark:text-zinc-400 font-sans font-medium">
+                                  {regGender}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full shrink-0">
+                            NEW
+                          </span>
+                        </div>
+
+                        {/* 4 GENCO Details Rows */}
+                        <div className="bg-slate-900/5 dark:bg-zinc-900/60 rounded-xl p-3.5 space-y-2 text-xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-zinc-500 dark:text-zinc-400 font-medium">State of Origin:</span>
+                            <span className="font-bold text-zinc-900 dark:text-white truncate text-right">{regOrigin}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-zinc-500 dark:text-zinc-400 font-medium">Course of Study:</span>
+                            <span className="font-bold text-zinc-900 dark:text-white truncate text-right max-w-[190px]" title={regCourse}>{regCourse}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-zinc-500 dark:text-zinc-400 font-medium">School Graduated From:</span>
+                            <span className="font-bold text-zinc-900 dark:text-white truncate text-right max-w-[190px]" title={regSchool}>{regSchool}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-zinc-500 dark:text-zinc-400 font-medium">Marital Status:</span>
+                            <span className="font-bold text-zinc-900 dark:text-white truncate text-right">{regMarital}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions Row */}
+                      <div className="space-y-2 pt-2 border-t border-slate-900/10 dark:border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedReg(reg)}
+                          className="w-full py-2 px-3 rounded-xl bg-slate-900/5 dark:bg-white/5 hover:bg-slate-900/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-blue-500" />
+                          <span>View Full Record</span>
+                        </button>
+
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => handleApproveRegistration(reg)}
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer shadow-md shadow-emerald-600/20"
+                          >
+                            <Check className="w-4 h-4" />
+                            <span>Admit Corper</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setRejectingItem({ id: reg.id, type: 'registration', name: regFullName })}
+                            className="py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center justify-center space-x-1 transition-all cursor-pointer border border-rose-500/20"
+                            title="Decline Registration"
+                          >
+                            <X className="w-4 h-4" />
+                            <span className="hidden sm:inline">Decline</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Processed Admissions Section */}
+          {processedRegs.length > 0 && (
+            <div className="space-y-3 pt-6 border-t border-slate-900/10 dark:border-white/10">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                Processed Admissions Log ({processedRegs.length})
+              </h3>
+              <div className="bg-white/50 backdrop-blur-xl border border-white/80 dark:bg-zinc-950/60 dark:border-white/10 rounded-2xl p-4 overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono min-w-[600px]">
+                  <thead>
+                    <tr className="bg-slate-900/5 dark:bg-white/5 text-zinc-500 uppercase text-[10px] border-b border-slate-900/10 dark:border-white/10">
+                      <th className="py-2.5 px-3">Applicant</th>
+                      <th className="py-2.5 px-3">State Code</th>
+                      <th className="py-2.5 px-3">House Status</th>
+                      <th className="py-2.5 px-3">Decision</th>
+                      <th className="py-2.5 px-3">Reviewed By</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-900/5 dark:divide-white/5 text-zinc-700 dark:text-zinc-300">
+                    {processedRegs.map((r) => {
+                      const tierInfo = evaluateTier({
+                        houseStatus: (r.house_status || r.houseStatus || 'Member') as any,
+                        executivePost: r.executive_post || r.executivePost || undefined,
+                      });
+
+                      return (
+                        <tr key={r.id} className="hover:bg-slate-900/5 dark:hover:bg-white/5">
+                          <td className="py-2.5 px-3 font-bold font-sans">{r.fullName || `${r.first_name || r.firstName || ''} ${r.last_name || r.lastName || ''}`.trim() || 'Corper'}</td>
+                          <td className="py-2.5 px-3">{r.state_code || r.stateCode}</td>
+                          <td className="py-2.5 px-3">
+                            <span
+                              className="px-2.5 py-0.5 rounded-full text-[10px] font-bold text-zinc-950 shadow-2xs inline-block whitespace-nowrap"
+                              style={{ backgroundColor: tierInfo.hexColor }}
+                              title={r.executive_post || r.executivePost || tierInfo.categoryName}
+                            >
+                              {tierInfo.badgeText || tierInfo.categoryName}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                r.status === 'approved'
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                              }`}
+                            >
+                              {r.status.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-[10px] text-zinc-500 font-sans">{r.reviewedBy || 'Admin Steward'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* FULL 19-FIELDS "VIEW FULL RECORD" MODAL (CORPER ROSTER STYLE) */}
+      {selectedReg && (() => {
+        const fullFirstName = selectedReg.first_name || selectedReg.firstName || '';
+        const fullMiddleName = selectedReg.middle_name || selectedReg.middleName || '';
+        const fullLastName = selectedReg.last_name || selectedReg.lastName || '';
+        const displayName = `${fullFirstName} ${fullLastName}`.trim() || selectedReg.fullName || 'Applicant';
+        const fullFullName = `${fullFirstName} ${fullMiddleName ? fullMiddleName + ' ' : ''}${fullLastName}`.trim() || selectedReg.fullName || 'N/A';
+        const stateCode = selectedReg.state_code || selectedReg.stateCode || 'N/A';
+        const gender = selectedReg.gender || 'N/A';
+        const email = selectedReg.email || 'N/A';
+        const phone = selectedReg.phone_number || selectedReg.phoneNumber || selectedReg.phone || 'N/A';
+        const dob = selectedReg.date_of_birth || selectedReg.dateOfBirth || 'N/A';
+        const origin = selectedReg.state_of_origin || selectedReg.stateOfOrigin || 'N/A';
+        const course = selectedReg.course_of_study || selectedReg.courseOfStudy || 'N/A';
+        const school = selectedReg.school_graduated_from || selectedReg.schoolGraduatedFrom || 'N/A';
+        const marital = selectedReg.marital_status || selectedReg.maritalStatus || 'Single';
+        const houseStatus = selectedReg.house_status || selectedReg.houseStatus || 'Member';
+        const roomName = selectedReg.room_name || selectedReg.roomName || 'General';
+        const serviceUnits = selectedReg.service_units || selectedReg.serviceUnits || [];
+        const presence = selectedReg.presence || 'Present';
+        const nextOfKinName = selectedReg.next_of_kin_name || selectedReg.nextOfKinName || 'N/A';
+        const nextOfKinPhone = selectedReg.next_of_kin_phone || selectedReg.nextOfKinPhone || 'N/A';
+        const avatar = selectedReg.avatar_url || selectedReg.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150';
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-zinc-950 border border-slate-900/10 dark:border-white/10 rounded-2xl max-w-2xl w-full p-4 sm:p-6 space-y-5 shadow-2xl my-auto max-h-[90vh] overflow-y-auto">
+              
+              {/* Header: Avatar, Name, Status Badge, State Code, Close button */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-900/10 dark:border-white/10">
+                <div className="flex items-center space-x-3.5 min-w-0">
+                  <img
+                    src={avatar}
+                    alt={displayName}
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-amber-500 shadow-md shrink-0 aspect-square"
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                      <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white leading-tight truncate">
+                        {displayName}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 uppercase tracking-wider">
+                        ADMISSION APPLICANT
+                      </span>
+                    </div>
+                    <p className="text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400 mt-0.5">
+                      {stateCode}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedReg(null)}
+                  className="p-1.5 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-slate-900/5 dark:hover:bg-white/5 transition-all cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* 1. PERSONAL INFORMATION SECTION */}
+              <div className="space-y-2.5">
+                <div className="flex items-center space-x-2 pb-1 border-b border-slate-900/10 dark:border-white/10">
+                  <User className="w-4 h-4 text-sky-500" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                    Personal Information
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Full Name</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white truncate block">{fullFullName}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">State Code</span>
+                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400 truncate block">{stateCode}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Gender</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white block">{gender}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Email Address</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white truncate block" title={email}>{email}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Phone Number</span>
+                    <span className="font-mono font-semibold text-zinc-900 dark:text-white block">{phone}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Date of Birth</span>
+                    <span className="font-mono font-semibold text-zinc-900 dark:text-white block">{dob}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. GENCO INFORMATION SECTION */}
+              <div className="space-y-2.5">
+                <div className="flex items-center space-x-2 pb-1 border-b border-slate-900/10 dark:border-white/10">
+                  <GraduationCap className="w-4 h-4 text-purple-500" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                    GENCO Information
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">State of Origin</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white truncate block">{origin}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Course of Study</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white truncate block" title={course}>{course}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">School Graduated From</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white truncate block" title={school}>{school}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Marital Status</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white block">{marital}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. HOUSE PROFILE SECTION */}
+              <div className="space-y-2.5">
+                <div className="flex items-center space-x-2 pb-1 border-b border-slate-900/10 dark:border-white/10">
+                  <Home className="w-4 h-4 text-emerald-500" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    House Profile
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">House Status</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white block">{houseStatus}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Room Name</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white block">{roomName}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Service Unit(s)</span>
+                    <span className="font-semibold text-amber-600 dark:text-amber-400 truncate block" title={Array.isArray(serviceUnits) ? serviceUnits.join(', ') : 'None'}>
+                      {Array.isArray(serviceUnits) && serviceUnits.length > 0 ? serviceUnits.join(', ') : 'None'}
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Presence Status</span>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                      {presence}
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl sm:col-span-2">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Current Month Dues Status</span>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                      Pending Admission Clearance
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. EMERGENCY INFORMATION SECTION */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-900/10 dark:border-white/10">
+                  <div className="flex items-center space-x-2">
+                    <HeartPulse className="w-4 h-4 text-rose-500" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                      Emergency Information
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    Emergency Purposes Only
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Name of Next of Kin</span>
+                    <span className="font-semibold text-zinc-900 dark:text-white block">{nextOfKinName}</span>
+                  </div>
+
+                  <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Contact of Next of Kin</span>
+                    {nextOfKinPhone && nextOfKinPhone !== 'N/A' ? (
+                      <a
+                        href={`tel:${nextOfKinPhone}`}
+                        className="font-mono font-semibold text-rose-600 dark:text-rose-400 flex items-center space-x-1 hover:underline mt-0.5"
+                      >
+                        <PhoneCall className="w-3 h-3 shrink-0" />
+                        <span>{nextOfKinPhone}</span>
+                      </a>
+                    ) : (
+                      <span className="font-semibold text-zinc-500 dark:text-zinc-400 block">N/A</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-900/10 dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const idToReject = selectedReg.id;
+                    const applicantName = displayName;
+                    setSelectedReg(null);
+                    setRejectingItem({ id: idToReject, type: 'registration', name: applicantName });
+                  }}
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs cursor-pointer border border-rose-500/20 flex items-center justify-center space-x-1.5 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Decline Application</span>
+                </button>
+
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReg(null)}
+                    className="flex-1 sm:flex-initial py-2.5 px-4 rounded-xl bg-slate-900/5 dark:bg-white/5 hover:bg-slate-900/10 dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 font-bold text-xs cursor-pointer transition-all"
+                  >
+                    Close Profile
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const regToApprove = selectedReg;
+                      setSelectedReg(null);
+                      handleApproveRegistration(regToApprove);
+                    }}
+                    className="flex-1 sm:flex-initial py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs cursor-pointer shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition-all"
+                  >
+                    <CheckCheck className="w-4 h-4" />
+                    <span>Admit Corper</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* MODAL 1: Document / Receipt File Preview Modal with Zoom & Rotation Controls */}
       {previewItem && (

@@ -62,6 +62,81 @@ export type RoomName =
   | 'Timothy'
   | 'Uncle\'s';
 
+export const MALE_ROOMS: RoomName[] = [
+  'David',
+  'Delegates (Male)',
+  'Excos (Male)',
+  'Gees (Male)',
+  'Hephzibah',
+  'Joseph',
+  'Judah',
+  'Papa\'s',
+  'Peace',
+  'Timothy',
+  'Shekinah',
+  'Uncle\'s',
+];
+
+export const FEMALE_ROOMS: RoomName[] = [
+  'Delegates (Female)',
+  'Esther',
+  'Excos (Female)',
+  'Gees (Female)',
+  'Lydia',
+  'Mary',
+  'Ruth',
+  'Tehilah',
+];
+
+export const ALL_ROOMS: RoomName[] = [
+  ...MALE_ROOMS,
+  ...FEMALE_ROOMS,
+].sort();
+
+export const ALL_EXECUTIVE_POSTS: ExecutivePost[] = [
+  'President (Papa)',
+  'General Secretary (Uncle)',
+  'Assistant General Secretary (Aunty)',
+  'Transport and Organizing Secretary (TOS Man)',
+  'Welfare Secretary and Sisters\' Coordinator (Mama)',
+  'Prayer Secretary (Prayo)',
+  'Bible Study Secretary (Bishop)',
+  'Evangelism Secretary (Rugged Man)',
+  'Treasurer (CBN)',
+  'Financial Secretary (IMF)',
+  'Music Director (MD)',
+  'Drama Director (DD)',
+  'Business Development Officer (BDO)',
+  'Publicity Secretary (PubGreat)',
+  'Assistant Transport and Organizing Secretary (ATOS)',
+  'Chief Usher/Landlady (Landlady)',
+  'Assistant Welfare/Brothers\' Coordinator (AC Papa)',
+  'Assistant Welfare and Sisters\' Coordinator (AC Mama)',
+  'Assistant Publicity Secretary (A. PubGreat)',
+  'Assistant Evangelism Secretary (A. Rugged)',
+  'Assistant Music Director (A. MD)',
+  'Librarian',
+];
+
+export const NIGERIAN_STATES: string[] = [
+  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
+  'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT - Abuja', 'Gombe',
+  'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos',
+  'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto',
+  'Taraba', 'Yobe', 'Zamfara'
+];
+
+export function getGeeSloganBadge(executivePost?: string | null): string {
+  if (!executivePost) return 'Gee';
+  const match = executivePost.match(/\(([^)]+)\)/);
+  if (match && match[1]) {
+    return `Gee ${match[1]}`;
+  }
+  // Fallback if no parentheses
+  if (executivePost.toLowerCase().includes('librarian')) return 'Gee Librarian';
+  return `Gee ${executivePost}`;
+}
+
 export type ServiceUnit =
   | 'Bible Study'
   | 'Choir'

@@ -82,14 +82,14 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
       setMiddleName(user.middleName || '');
       setLastName(user.lastName || '');
       setGender(user.gender === 'Female' ? 'Female' : 'Male');
-      setDateOfBirth(user.dateOfBirth || '1999-01-01');
+      setDateOfBirth(user.dateOfBirth || '');
       setMaritalStatus(user.maritalStatus || 'Not Engaged');
 
       setEmail(user.email || '');
       setPhone(user.phone || '');
       setNextOfKinName(user.nextOfKinName || '');
       setNextOfKinPhone(user.nextOfKinPhone || '');
-      setStateOfOrigin(user.stateOfOrigin || 'Rivers');
+      setStateOfOrigin(user.stateOfOrigin || '');
       setCourseOfStudy(user.courseOfStudy || '');
       setSchoolGraduatedFrom(user.schoolGraduatedFrom || '');
 
@@ -104,7 +104,7 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
         ? user.serviceUnits
         : user.serviceUnit
         ? user.serviceUnit.split(',').map((s) => s.trim()).filter(Boolean)
-        : ['Bible Study'];
+        : [];
       setServiceUnits(units);
       
       setPresence(user.presence || 'Present');
@@ -128,7 +128,7 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
       return;
     }
 
-    const updatedUnits = serviceUnits.length > 0 ? serviceUnits : ['Bible Study'];
+    const updatedUnits = serviceUnits;
 
     updateUserProfile(user.id, {
       firstName: firstName.trim(),
@@ -495,7 +495,7 @@ export const EditCorperProfileModal: React.FC<EditCorperProfileModalProps> = ({ 
 
                 <div>
                   <label className="block text-zinc-800 dark:text-zinc-300 font-semibold mb-1">
-                    Executive Post (If applicable)
+                    {houseStatus === 'Gee' ? 'Honorary Post / Slogan' : 'Executive Post (If applicable)'}
                   </label>
                   <select
                     value={executivePost}

@@ -108,21 +108,21 @@ export const CsvOnboardingZone: React.FC<CsvOnboardingZoneProps> = ({ onOpenAddS
       const middleName = rowObj.middle_name || rowObj.middleName || values[2] || undefined;
       const lastName = rowObj.last_name || rowObj.lastName || values[3] || 'Member';
       const gender = (rowObj.gender || 'M').toUpperCase().startsWith('F') ? 'F' : 'M';
-      const email = rowObj.email || `${firstName.toLowerCase()}@nccf-rivers.org`;
-      const phone = rowObj.phone_number || rowObj.phone || rowObj.phoneNumber || values[6] || '08000000000';
-      const dateOfBirth = rowObj.date_of_birth || rowObj.dateOfBirth || rowObj.dob || values[7] || '1999-05-12';
-      const stateOfOrigin = rowObj.state_of_origin || rowObj.stateOfOrigin || values[8] || 'Rivers';
-      const courseOfStudy = rowObj.course_of_study || rowObj.courseOfStudy || values[9] || 'General Studies';
-      const schoolGraduatedFrom = rowObj.school_graduated_from || rowObj.schoolGraduatedFrom || values[10] || 'University';
+      const email = rowObj.email || undefined;
+      const phone = rowObj.phone_number || rowObj.phone || rowObj.phoneNumber || values[6] || undefined;
+      const dateOfBirth = rowObj.date_of_birth || rowObj.dateOfBirth || rowObj.dob || values[7] || undefined;
+      const stateOfOrigin = rowObj.state_of_origin || rowObj.stateOfOrigin || values[8] || undefined;
+      const courseOfStudy = rowObj.course_of_study || rowObj.courseOfStudy || values[9] || undefined;
+      const schoolGraduatedFrom = rowObj.school_graduated_from || rowObj.schoolGraduatedFrom || values[10] || undefined;
       const maritalStatus = (rowObj.marital_status || rowObj.maritalStatus || 'Not Engaged') as 'Engaged' | 'Not Engaged';
       const houseStatusRaw = (rowObj.house_status || rowObj.houseStatus || 'Member').trim();
       const houseStatus: HouseStatus = ['Member', 'Room Gov', 'Executive', 'Delegate', 'Gee'].includes(houseStatusRaw)
         ? (houseStatusRaw as HouseStatus)
         : 'Member';
       const executivePost = rowObj.executive_post || rowObj.executivePost || rowObj.postTitle || undefined;
-      const serviceUnitRaw = rowObj.service_units || rowObj.serviceUnits || rowObj.serviceUnit || 'Bible Study';
-      const serviceUnits = serviceUnitRaw.split(',').map((s) => s.trim()).filter(Boolean);
-      const serviceUnit = serviceUnits.join(', ');
+      const serviceUnitRaw = rowObj.service_units || rowObj.serviceUnits || rowObj.serviceUnit || '';
+      const serviceUnits = serviceUnitRaw ? serviceUnitRaw.split(',').map((s) => s.trim()).filter(Boolean) : [];
+      const serviceUnit = serviceUnits.length > 0 ? serviceUnits.join(', ') : undefined;
       const roomName = rowObj.room_name || rowObj.roomName || 'Peace';
       const systemCategory = (rowObj.system_category || rowObj.systemCategory || 'member') as SystemCategory;
       const presence = (rowObj.presence || 'Present') as any;

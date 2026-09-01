@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { CorperProfile } from '../../types/corper';
 import { MonthLedgerEntry } from '../../types/ledger';
 import { CircularGauge } from './CircularGauge';
 import { Coins, Upload, Calendar, FileText } from 'lucide-react';
-import { calculateWaterfallDues } from '../../utils/duesCalculator';
+import { calculateWaterfallDues, getCurrentActiveLedgerMonth } from '../../utils/duesCalculator';
 
 interface SubscriptionHubProps {
   activeUser: CorperProfile;
@@ -24,13 +24,27 @@ export const SubscriptionHub: React.FC<SubscriptionHubProps> = ({
   onOpenMonthDetails,
   isReadOnly = false,
 }) => {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const selectedBtnRef = useRef<HTMLButtonElement>(null);
+
   // Find current active month entry matching monthKey or monthKey-year
+  const activeMonthInfo = getCurrentActiveLedgerMonth();
   const currentMonthEntry =
     ledgerEntries.find(
       (e) => `${e.monthKey}-${e.year}` === selectedMonthKey || e.monthKey === selectedMonthKey
     ) ||
-    ledgerEntries.find((e) => e.monthKey === 'AUG' && e.year === 2026) ||
+    ledgerEntries.find((e) => e.monthKey === activeMonthInfo.monthCode && e.year === activeMonthInfo.year) ||
     ledgerEntries[0];
+
+  useEffect(() => {
+    if (selectedBtnRef.current && trackRef.current) {
+      selectedBtnRef.current.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+  }, [selectedMonthKey]);
 
   const maintTarget = currentMonthEntry.maintenanceTarget || activeUser?.targets?.maintenance || 15000;
   const feedTarget = currentMonthEntry.feedingTarget ?? activeUser?.targets?.feeding ?? 10000;
@@ -152,7 +166,10 @@ export const SubscriptionHub: React.FC<SubscriptionHubProps> = ({
         </div>
 
         {/* Rolling Glass Segmented Track */}
-        <div className="flex items-center gap-2 p-1.5 bg-slate-900/10 dark:bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl overflow-x-auto scrollbar-none snap-x focus:outline-none">
+        <div
+          ref={trackRef}
+          className="flex items-center gap-2 p-1.5 bg-slate-900/10 dark:bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl overflow-x-auto scrollbar-none snap-x focus:outline-none scroll-smooth"
+        >
           {ledgerEntries.map((entry, idx) => {
             const entryKey = `${entry.monthKey}-${entry.year}`;
             const isSelected =
@@ -178,6 +195,7 @@ export const SubscriptionHub: React.FC<SubscriptionHubProps> = ({
                   </div>
                 )}
                 <button
+                  ref={isSelected ? selectedBtnRef : null}
                   type="button"
                   onClick={() => onSelectMonthKey(entryKey)}
                   className={`flex flex-col items-center justify-center px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wider shrink-0 transition-all duration-200 active:scale-95 cursor-pointer select-none font-mono ${

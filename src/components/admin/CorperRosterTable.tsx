@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { CorperProfile, HouseStatus, PresenceStatus, hasTripartiteAccess, ALL_SERVICE_UNITS } from '../../types/corper';
 import { evaluateTier, getShortRoleTitle } from '../../utils/tierEvaluator';
 import { getStoredUserLedger } from '../../data/initialLedger';
-import { calculateWaterfallDues } from '../../utils/duesCalculator';
+import { calculateWaterfallDues, getCurrentActiveLedgerMonth } from '../../utils/duesCalculator';
 import { useRequests } from '../../context/RequestsContext';
 import {
   Search,
@@ -94,11 +94,12 @@ export const CorperRosterTable: React.FC<CorperRosterTableProps> = ({
       return 'Exempt';
     }
     const userEntries = getStoredUserLedger(user, duesSubmissions);
-    const augEntry = userEntries.find(
-      (e) => e.year === 2026 && (e.monthKey === 'AUG' || e.monthName === 'August')
+    const { monthCode, monthName, year } = getCurrentActiveLedgerMonth();
+    const currentEntry = userEntries.find(
+      (e) => e.year === year && (e.monthKey === monthCode || e.monthName === monthName)
     );
-    if (!augEntry) return 'Unpaid';
-    const totalPaid = augEntry.maintenancePaid + augEntry.feedingPaid;
+    if (!currentEntry) return 'Unpaid';
+    const totalPaid = currentEntry.maintenancePaid + currentEntry.feedingPaid;
 
     const waterfall = calculateWaterfallDues(totalPaid, user);
     if (waterfall.isTripartiteExempt && waterfall.feedTarget === 0 && waterfall.maintTarget === 0) return 'Exempt';

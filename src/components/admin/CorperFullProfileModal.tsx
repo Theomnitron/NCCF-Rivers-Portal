@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CorperProfile } from '../../types/corper';
 import { getStoredUserLedger } from '../../data/initialLedger';
-import { calculateWaterfallDues } from '../../utils/duesCalculator';
+import { calculateWaterfallDues, getCurrentActiveLedgerMonth } from '../../utils/duesCalculator';
 import { evaluateTier } from '../../utils/tierEvaluator';
 import { useAuth } from '../../context/AuthContext';
 import { useRequests } from '../../context/RequestsContext';
@@ -46,10 +46,11 @@ export const CorperFullProfileModal: React.FC<CorperFullProfileModalProps> = ({
 
   const tierInfo = evaluateTier(user);
 
-  // Active month standing (August 2026)
+  // Active calendar month standing
   const userEntries = getStoredUserLedger(user, duesSubmissions);
+  const { monthCode, monthName, year } = getCurrentActiveLedgerMonth();
   const activeEntry = userEntries.find(
-    (e) => e.year === 2026 && (e.monthKey === 'AUG' || e.monthName === 'August')
+    (e) => e.year === year && (e.monthKey === monthCode || e.monthName === monthName)
   );
 
   let currentMonthDuesStatus = 'Unpaid';

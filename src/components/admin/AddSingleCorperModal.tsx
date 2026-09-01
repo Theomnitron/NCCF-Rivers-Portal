@@ -26,15 +26,15 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
   const [phone, setPhone] = useState('');
   const [nextOfKinName, setNextOfKinName] = useState('');
   const [nextOfKinPhone, setNextOfKinPhone] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('1999-05-12');
-  const [stateOfOrigin, setStateOfOrigin] = useState('Rivers');
-  const [courseOfStudy, setCourseOfStudy] = useState('Computer Science');
-  const [schoolGraduatedFrom, setSchoolGraduatedFrom] = useState('University of Port Harcourt');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [stateOfOrigin, setStateOfOrigin] = useState('');
+  const [courseOfStudy, setCourseOfStudy] = useState('');
+  const [schoolGraduatedFrom, setSchoolGraduatedFrom] = useState('');
   const [maritalStatus, setMaritalStatus] = useState<'Engaged' | 'Not Engaged'>('Not Engaged');
   const [houseStatus, setHouseStatus] = useState<HouseStatus>('Member');
   const [postTitle, setPostTitle] = useState('');
   const [roomName, setRoomName] = useState('1G (Female)');
-  const [selectedUnits, setSelectedUnits] = useState<string[]>(['Bible Study']);
+  const [selectedUnits, setSelectedUnits] = useState<string[]>([]);
   const [systemCategory, setSystemCategory] = useState<SystemCategory>('member');
   const [presence, setPresence] = useState<PresenceStatus>('Present');
   const [hasTripartitePrivileges, setHasTripartitePrivileges] = useState(false);
@@ -431,17 +431,17 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
                 </select>
               </div>
 
-              {/* CONDITIONAL POST TITLE INPUT IF EXECUTIVE */}
-              {houseStatus === 'Executive' && (
+              {/* CONDITIONAL POST TITLE / SLOGAN INPUT IF EXECUTIVE OR GEE */}
+              {(houseStatus === 'Executive' || houseStatus === 'Gee') && (
                 <div>
                   <label className="block text-zinc-800 dark:text-zinc-300 font-semibold mb-1">
-                    Executive Post Title
+                    {houseStatus === 'Gee' ? 'Honorary Executive Post / Slogan' : 'Executive Post Title'}
                   </label>
                   <input
                     type="text"
                     value={postTitle}
                     onChange={(e) => setPostTitle(e.target.value)}
-                    placeholder="e.g. State President"
+                    placeholder={houseStatus === 'Gee' ? 'e.g. Drama Director (DD) or General Secretary (Uncle)' : 'e.g. State President (Papa)'}
                     className="w-full min-h-[40px] py-2 px-3 rounded-xl border border-slate-900/10 dark:border-white/10 bg-slate-900/5 dark:bg-black/50 text-zinc-900 dark:text-white font-medium"
                   />
                 </div>
