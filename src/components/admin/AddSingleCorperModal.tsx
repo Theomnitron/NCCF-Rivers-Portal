@@ -109,7 +109,7 @@ export const AddSingleCorperModal: React.FC<AddSingleCorperModalProps> = ({
       schoolGraduatedFrom,
       maritalStatus,
       houseStatus,
-      executivePost: houseStatus === 'Executive' ? postTitle : undefined,
+      executivePost: (houseStatus === 'Executive' || houseStatus === 'Gee') ? postTitle.trim() || undefined : undefined,
       roomName,
       serviceUnit: fullServiceUnitString,
       systemCategory,

@@ -1108,6 +1108,7 @@ export const ApprovalsView: React.FC = () => {
         const school = selectedReg.school_graduated_from || selectedReg.schoolGraduatedFrom || 'N/A';
         const marital = selectedReg.marital_status || selectedReg.maritalStatus || 'Single';
         const houseStatus = selectedReg.house_status || selectedReg.houseStatus || 'Member';
+        const executivePost = selectedReg.executive_post || selectedReg.executivePost || '';
         const roomName = selectedReg.room_name || selectedReg.roomName || 'General';
         const serviceUnits = selectedReg.service_units || selectedReg.serviceUnits || [];
         const presence = selectedReg.presence || 'Present';
@@ -1239,6 +1240,17 @@ export const ApprovalsView: React.FC = () => {
                     <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">House Status</span>
                     <span className="font-semibold text-zinc-900 dark:text-white block">{houseStatus}</span>
                   </div>
+
+                  {executivePost && (
+                    <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
+                      <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">
+                        {houseStatus === 'Gee' ? 'Executive Post / Slogan' : 'Executive Post'}
+                      </span>
+                      <span className="font-semibold text-amber-600 dark:text-amber-400 block truncate" title={executivePost}>
+                        {executivePost}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="bg-slate-900/5 dark:bg-zinc-900/60 p-2.5 rounded-xl">
                     <span className="text-zinc-500 dark:text-zinc-400 block text-[10px] uppercase font-bold">Room Name</span>

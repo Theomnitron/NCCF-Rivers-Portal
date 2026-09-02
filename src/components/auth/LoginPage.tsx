@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { NccfLogo } from '../NccfLogo';
 import { RegistrationWizardModal } from './RegistrationWizardModal';
+import { DeveloperSupportFab } from '../DeveloperSupportFab';
 import {
   Mail,
   Lock,
@@ -762,6 +763,8 @@ export const LoginPage: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* Floating Developer Support FAB for Inquiries and Login Assistance */}
+      <DeveloperSupportFab />
     </div>
   );
 };
